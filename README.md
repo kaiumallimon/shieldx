@@ -57,7 +57,7 @@ Example API Calls:
 - **Fetch Passwords:** `GET /api/password/all/:userId`
 - **Store Password:** `POST /api/password/store`
 
-Refer to the [ShieldX Server README](https://github.com/kaiumallimon/shieldx-server) for full API details.
+Refer to the [ShieldX Server README](https://github.com/kaiumallimon/shieldx-server/blob/main/README.md) for full API details.
 
 ## Screenshots
 
