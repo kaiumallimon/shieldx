@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../core/constants/_assets.dart';
 import '../../../core/constants/_strings.dart';
+import '../../../local/_onboard_service.dart';
 
 class OnboardController extends GetxController {
   var currentPage = 0.obs;
@@ -12,7 +13,7 @@ class OnboardController extends GetxController {
     currentPage.value = index;
   }
 
-  void nextPage() {
+  Future<void> nextPage() async {
     if (currentPage.value < 2) {
       pageController.animateToPage(
         currentPage.value + 1,
@@ -20,7 +21,9 @@ class OnboardController extends GetxController {
         curve: Curves.ease,
       );
     } else {
-      // Navigate to home or login page
+      // Save onboard status in hive
+      await OnboardService().saveOnboardStatus(true);
+      // Navigate to login
       Get.offAllNamed('/login');
     }
   }

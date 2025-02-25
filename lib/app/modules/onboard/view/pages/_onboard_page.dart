@@ -100,7 +100,9 @@ class OnboardPage extends StatelessWidget {
                               text: controller.currentPage.value < 2
                                   ? AppStrings.next
                                   : AppStrings.getStarted,
-                              onPressed: controller.nextPage,
+                              onPressed: ()async {
+                                await controller.nextPage();
+                              },
                               color: theme.primary,
                               textColor: theme.onPrimary,
                               width: size.width * 0.5,
