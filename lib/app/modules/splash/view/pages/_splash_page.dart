@@ -18,7 +18,7 @@ class SplashPage extends StatelessWidget {
     setUiColors(theme);
 
     // call goToLogin
-    Get.find<SplashController>().goToLogin();
+    Get.find<SplashController>().goNext();
 
     return Scaffold(
       body: SafeArea(
