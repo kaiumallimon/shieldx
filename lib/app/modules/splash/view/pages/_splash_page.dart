@@ -25,9 +25,8 @@ class SplashPage extends StatelessWidget {
           child: Stack(
         children: [
           Center(
-            child: Image.asset(AppAssets.logoWithName),
+            child: Image.asset(AppAssets.logosmall),
           ),
-
           Positioned(
             bottom: 20,
             left: 0,
