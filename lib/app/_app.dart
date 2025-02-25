@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme().dark,
+      theme: AppTheme().light,
       initialBinding: AppBindings(),
       initialRoute: '/',
       getPages: appRoutes,
