@@ -7,7 +7,7 @@ class AppBindings extends Bindings {
   @override
   void dependencies() {
     // Controllers
-    Get.lazyPut(() => SplashController());
-    Get.lazyPut(() => OnboardController());
+    Get.put( SplashController());
+    Get.put(OnboardController());
   }
 }
