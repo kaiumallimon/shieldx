@@ -15,4 +15,5 @@ class AppStrings {
   static const String register = 'Register';
   static const String next = 'Next';
   static const String skip = 'Skip to Login';
+  static const String getStarted = 'Get Started';
 }
