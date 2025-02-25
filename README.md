@@ -1,3 +1,6 @@
+![Logo](assets/images/2.png)
+
+
 # ShieldX - Flutter Client
 
 ShieldX is a secure and scalable cross-platform password manager mobile application built with **Flutter** and **Firebase**. It allows users to store, manage, and retrieve their passwords with strong authentication and encryption.
