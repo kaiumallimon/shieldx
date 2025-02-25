@@ -7,21 +7,12 @@ ShieldX is a secure and scalable cross-platform password manager mobile applicat
 
 ## Features
 
-- **User Authentication**: Secure sign-up and login using Firebase Authentication.
-- **Password Management**: Store, edit, retrieve, and delete saved passwords.
-- **Data Encryption**: AES encryption to keep passwords secure.
-- **Biometric Authentication**: Unlock the app using fingerprint or Face ID.
-- **Cross-Platform Support**: Works on both **Android** and **iOS**.
-- **Cloud Sync**: Automatic sync across devices using Firebase Firestore.
-- **Password Generator**: Generate strong passwords within the app. [Coming soon...]
+- Will be updated..
 
 ## Tech Stack
 
 - **Flutter** (Dart)
-- **Firebase Authentication** (User management)
-- **Cloud Firestore** (Database)
-- **AES Encryption** (Secure password storage)
-- **Provider / Riverpod** (State management)
+
 
 ## Project Structure
 
