@@ -1,4 +1,4 @@
-class AppSize{
+class AppSize {
   static const double fontRegular = 16;
   static const double fontMedium = 18;
   static const double fontLarge = 20;
@@ -31,7 +31,8 @@ class AppSize{
   static const double inputHeight = 50;
   static const double inputHeightLarge = 60;
 
-
   static const double cardHorizontalPadding = 20;
   static const double cardVerticalPadding = 15;
+
+  static const double appBarHeight = 60;
 }

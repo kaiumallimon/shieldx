@@ -13,6 +13,10 @@ class AppStrings {
 
   static const String login = 'Login';
   static const String loginTitle = 'Login to your account';
+  static const String registerTitle = 'Create an account';
+  static const String registerSubTitle =
+      'Enter your details below to create a new account.';
+  static const String forgotPassword = 'Forgot Password?';
 
   static const String register = 'Register';
   static const String next = 'Next';
@@ -26,4 +30,7 @@ class AppStrings {
   static const String google = 'Google';
 
   static const String or = 'Or continue with';
+  static const String name = 'Name';
+
+  static const String confirmPasswordHint = 'Confirm Password';
 }
