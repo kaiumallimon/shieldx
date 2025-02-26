@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:shieldx/app/core/constants/_sizes.dart';
 import 'package:shieldx/app/core/widgets/_custom_button.dart';
 
@@ -7,6 +8,7 @@ import '../../../../core/constants/_strings.dart';
 import '../../../../core/theme/_styles.dart';
 import '../../../../core/utils/_system_bar_colors.dart';
 import '../../../../core/widgets/_custom_textfield.dart';
+import '../../controller/_register_controller.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -40,7 +42,7 @@ class RegisterPage extends StatelessWidget {
               shadowColor: Colors.transparent,
               expandedHeight: AppSize.appBarHeight,
               leading: IconButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: Get.find<RegisterController>().goBack,
                 icon: Icon(
                   Icons.arrow_back_ios_new_rounded,
                   color: theme.onSurface,
@@ -94,7 +96,7 @@ class RegisterPage extends StatelessWidget {
                   children: [
                     // name
                     CustomTextField(
-                      controller: TextEditingController(),
+                      controller: Get.find<RegisterController>().nameController,
                       hintText: AppStrings.name,
                       prefixIcon: Icon(
                         Icons.person,
@@ -106,7 +108,8 @@ class RegisterPage extends StatelessWidget {
                     ),
                     // email
                     CustomTextField(
-                      controller: TextEditingController(),
+                      controller:
+                          Get.find<RegisterController>().emailController,
                       hintText: AppStrings.email,
                       prefixIcon: Icon(
                         Icons.email,
@@ -119,12 +122,14 @@ class RegisterPage extends StatelessWidget {
 
                     // password
                     CustomTextField(
-                      controller: TextEditingController(),
+                      controller:
+                          Get.find<RegisterController>().passwordController,
                       hintText: AppStrings.password,
                       prefixIcon: Icon(
                         Icons.lock,
                         color: theme.primary,
                       ),
+                      obscureText: true,
                       fillColor: theme.onSurface.withOpacity(.1),
                       textColor: theme.onSurface,
                       hintColor: theme.onSurface.withOpacity(.5),
@@ -132,12 +137,14 @@ class RegisterPage extends StatelessWidget {
 
                     // confirm password
                     CustomTextField(
-                      controller: TextEditingController(),
+                      controller: Get.find<RegisterController>()
+                          .confirmPasswordController,
                       hintText: AppStrings.confirmPasswordHint,
                       prefixIcon: Icon(
                         Icons.lock,
                         color: theme.primary,
                       ),
+                      obscureText: true,
                       fillColor: theme.onSurface.withOpacity(.1),
                       textColor: theme.onSurface,
                       hintColor: theme.onSurface.withOpacity(.5),
@@ -145,11 +152,16 @@ class RegisterPage extends StatelessWidget {
 
                     // register button
 
-                    CustomButton(
-                        text: AppStrings.register,
-                        onPressed: () async {},
-                        color: theme.primary,
-                        textColor: theme.onPrimary),
+                    Obx(() {
+                      return CustomButton(
+                          text: AppStrings.register,
+                          isLoading:
+                              Get.find<RegisterController>().isLoading.value,
+                          onPressed: () async =>
+                              await Get.find<RegisterController>().register(),
+                          color: theme.primary,
+                          textColor: theme.onPrimary);
+                    }),
                   ],
                 ),
               ),
@@ -160,6 +172,3 @@ class RegisterPage extends StatelessWidget {
     );
   }
 }
-
-
-
