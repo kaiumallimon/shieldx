@@ -13,4 +13,10 @@ class AppAssets {
   static const String maleProfile = 'assets/images/7.png';
   static const String femaleProfile = 'assets/images/8.png';
   static const String avatar = 'assets/images/avatar-placeholder.png';
+
+  // google svg
+  static const String google = 'assets/svgs/icons8-google.svg';
+
+  // facebook svg
+  static const String facebook = 'assets/svgs/icons8-facebook.svg';
 }

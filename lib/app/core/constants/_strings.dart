@@ -12,8 +12,18 @@ class AppStrings {
       'Easily organize and access your credentials whenever you need them.';
 
   static const String login = 'Login';
+  static const String loginTitle = 'Login to your account';
+
   static const String register = 'Register';
   static const String next = 'Next';
   static const String skip = 'Skip to Login';
   static const String getStarted = 'Get Started';
+
+  static const String email = 'Email';
+  static const String password = 'Password';
+
+  static const String facebook = 'Facebook';
+  static const String google = 'Google';
+
+  static const String or = 'Or continue with';
 }

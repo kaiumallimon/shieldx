@@ -13,6 +13,12 @@ class AppStyles {
     fontWeight: FontWeight.normal,
   );
 
+  // body text style
+  static const TextStyle bodyTextStyle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.normal,
+  );
+
   // button text style
   static const TextStyle buttonTextStyle = TextStyle(
     fontSize: 14,
