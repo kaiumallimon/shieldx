@@ -5,7 +5,7 @@ import 'package:shieldx/app/data/services/_supabase.dart';
 
 void main()async{
   WidgetsFlutterBinding.ensureInitialized();
-  dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: ".env");
   await SupabaseService.initialize();
   runApp(const MyApp());
 }
