@@ -51,7 +51,7 @@ class _WelcomePageState extends State<WelcomePage> {
 
                   // Navigate to main app
                   if (context.mounted) {
-                    context.go('/login');
+                    context.go('/auth?index=1');
                   }
                 },
               ),
@@ -112,7 +112,7 @@ class _WelcomePageState extends State<WelcomePage> {
                   await _storeOnboardedStatus();
                   // Navigate to get started or login
                   if (context.mounted) {
-                    context.go('/register');
+                    context.go('/auth?index=0');
                   }
                 },
                 onNavigateToApp: () async {
@@ -120,7 +120,7 @@ class _WelcomePageState extends State<WelcomePage> {
                   await _storeOnboardedStatus();
                   // Navigate to main app
                   if (context.mounted) {
-                    context.go('/login');
+                    context.go('/auth?index=1');
                   }
                 },
               ),

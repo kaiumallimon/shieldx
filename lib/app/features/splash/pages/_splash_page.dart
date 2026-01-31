@@ -32,7 +32,7 @@ class _SplashPageState extends State<SplashPage> {
 
     // Navigate based on onboarding status
     if (hasCompletedOnboarding) {
-      context.go('/login');
+      context.go('/auth?index=1');
     } else {
       context.go('/welcome');
     }
