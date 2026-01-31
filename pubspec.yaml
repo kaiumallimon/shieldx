@@ -17,6 +17,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
+  flutter_svg: ^2.2.3
   go_router: ^17.0.1
   shared_preferences: ^2.5.4
   supabase_flutter: ^2.12.0
@@ -32,6 +33,7 @@ flutter:
   assets:
     - assets/images/
     - assets/logo/
+    - assets/svgs/
     - assets/fonts/google/
     - assets/fonts/inter/
     - .env

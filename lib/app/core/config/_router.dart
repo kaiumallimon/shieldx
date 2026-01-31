@@ -1,15 +1,22 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shieldx/app/features/splash/pages/splash_page.dart';
+import 'package:shieldx/app/features/welcome/_welcome_page.dart';
 
 final router = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(
       path: '/',
-      pageBuilder: (context, state) => material3TransitionPage(
-        child: const Scaffold(body: Center(child: Text('Home Page'))),
-      ),
+      pageBuilder: (context, state) =>
+          material3TransitionPage(child: const SplashPage()),
+    ),
+
+    GoRoute(
+      path: '/welcome',
+      pageBuilder: (context, state) =>
+          material3TransitionPage(child: const WelcomePage()),
     ),
   ],
 );
