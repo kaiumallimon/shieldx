@@ -62,7 +62,10 @@ class FooterButtons extends StatelessWidget {
               ),
             ),
             child: Text(
-              'Next',
+              pageController.hasClients &&
+              (pageController.page ?? 0).round() == totalPages - 1
+                  ? 'Login'
+                  : 'Next',
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
