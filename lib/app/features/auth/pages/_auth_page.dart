@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shieldx/app/features/auth/widgets/_auth_header.dart';
 import 'package:shieldx/app/features/auth/widgets/_auth_toggle.dart';
+import 'package:shieldx/app/features/auth/widgets/_login_form.dart';
+import 'package:shieldx/app/features/auth/widgets/_registration_form.dart';
 
 class AuthPage extends StatefulWidget {
   final int initialIndex;
@@ -61,6 +63,11 @@ class _AuthPageState extends State<AuthPage> {
                   AuthToggle(
                     selectedIndex: selectedIndex,
                     onToggle: changeMenuIndex,
+                  ),
+                  Expanded(
+                    child: selectedIndex == 0
+                        ? const RegistrationForm()
+                        : const LoginForm(),
                   ),
                 ],
               ),
