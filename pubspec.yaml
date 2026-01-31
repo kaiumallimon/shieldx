@@ -33,7 +33,6 @@ flutter:
   assets:
     - assets/images/
     - assets/logo/
-    - assets/svgs/
     - assets/fonts/google/
     - assets/fonts/inter/
     - .env
