@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shieldx/app/data/services/_auth_storage_service.dart';
+import 'package:shieldx/app/data/services/_supabase.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -11,13 +13,15 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  final AuthStorageService _authStorage = AuthStorageService();
+
   @override
   void initState() {
     super.initState();
     _navigateAfterDelay();
   }
 
-  /// Check onboarding status and navigate accordingly after 2 seconds
+  /// Check auth status and navigate accordingly after 2 seconds
   Future<void> _navigateAfterDelay() async {
     // Wait for 2 seconds to show splash screen
     await Future.delayed(const Duration(seconds: 2));
@@ -28,13 +32,25 @@ class _SplashPageState extends State<SplashPage> {
     final prefs = await SharedPreferences.getInstance();
     final hasCompletedOnboarding = prefs.getBool('onboarded') ?? false;
 
-    if (!mounted) return;
+    if (!hasCompletedOnboarding) {
+      if (mounted) context.go('/welcome');
+      return;
+    }
 
-    // Navigate based on onboarding status
-    if (hasCompletedOnboarding) {
-      context.go('/auth?index=1');
+    // Check if user has stored session
+    final hasStoredSession = await _authStorage.hasStoredSession();
+
+    // Check if Supabase has active session
+    final supabaseSession = SupabaseService.client.auth.currentSession;
+
+    if (hasStoredSession && supabaseSession != null) {
+      // User is authenticated, go to home
+      if (mounted) context.go('/home');
     } else {
-      context.go('/welcome');
+      // Clear any stale local data
+      await _authStorage.clearUserSession();
+      // User is not authenticated, go to auth page
+      if (mounted) context.go('/auth');
     }
   }
 

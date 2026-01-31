@@ -1,5 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shieldx/app/features/auth/cubit/_auth_states.dart';
+import 'package:shieldx/app/features/auth/cubit/_registration_cubit.dart';
 import 'package:shieldx/app/features/auth/widgets/_auth_text_field.dart';
+import 'package:toastification/toastification.dart';
 
 class RegistrationForm extends StatefulWidget {
   const RegistrationForm({super.key});
@@ -23,6 +29,49 @@ class _RegistrationFormState extends State<RegistrationForm> {
     });
   }
 
+  void _handleRegistration() {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      toastification.show(
+        context: context,
+        title: const Text('Please fill in all fields'),
+        type: ToastificationType.error,
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
+      toastification.show(
+        context: context,
+        title: const Text('Passwords do not match'),
+        type: ToastificationType.error,
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+      return;
+    }
+
+    if (!acceptTerms) {
+      toastification.show(
+        context: context,
+        title: const Text('Please accept the terms and conditions'),
+        type: ToastificationType.error,
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+      return;
+    }
+
+    context.read<RegistrationCubit>().register(
+          name: name,
+          email: email,
+          password: password,
+        );
+  }
+
   @override
   void dispose() {
     nameController.dispose();
@@ -38,13 +87,32 @@ class _RegistrationFormState extends State<RegistrationForm> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 600;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: isSmallScreen ? 20 : 32,
-        vertical: 8,
-      ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500),
+    return BlocListener<RegistrationCubit, RegistrationState>(
+      listener: (context, state) {
+        if (state is RegistrationSuccess) {
+          toastification.show(
+            context: context,
+            title: const Text('Registration successful!'),
+            type: ToastificationType.success,
+            autoCloseDuration: const Duration(seconds: 2),
+          );
+          context.go('/home');
+        } else if (state is RegistrationFailure) {
+          toastification.show(
+            context: context,
+            title: Text(state.error),
+            type: ToastificationType.error,
+            autoCloseDuration: const Duration(seconds: 3),
+          );
+        }
+      },
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: isSmallScreen ? 20 : 32,
+          vertical: 8,
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -135,32 +203,37 @@ class _RegistrationFormState extends State<RegistrationForm> {
               ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: acceptTerms
-                  ? () {
-                      // Handle registration action
-                    }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(54),
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.onPrimary,
-                disabledBackgroundColor:
-                    theme.colorScheme.onSurface.withAlpha(40),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Register',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: acceptTerms
-                      ? theme.colorScheme.onPrimary
-                      : theme.colorScheme.onSurface.withAlpha(100),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            BlocBuilder<RegistrationCubit, RegistrationState>(
+              builder: (context, state) {
+                final isLoading = state is RegistrationLoading;
+                return ElevatedButton(
+                  onPressed: (acceptTerms && !isLoading) ? _handleRegistration : null,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(54),
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    disabledBackgroundColor:
+                        theme.colorScheme.onSurface.withAlpha(40),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const CupertinoActivityIndicator(
+                          color: Colors.white,
+                        )
+                      : Text(
+                          'Register',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: acceptTerms
+                                ? theme.colorScheme.onPrimary
+                                : theme.colorScheme.onSurface.withAlpha(100),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                );
+              },
             ),
             const SizedBox(height: 24),
             Row(
@@ -235,6 +308,6 @@ class _RegistrationFormState extends State<RegistrationForm> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

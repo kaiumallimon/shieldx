@@ -1,11 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/features/auth/cubit/_auth_states.dart';
 import 'package:shieldx/app/features/auth/services/_registration_service.dart';
 
 class RegistrationCubit extends Cubit<RegistrationState> {
   final RegistrationService _registrationService;
+  final AuthStorageService _authStorage;
 
-  RegistrationCubit(this._registrationService) : super(RegistrationInitial());
+  RegistrationCubit(this._registrationService, this._authStorage)
+      : super(RegistrationInitial());
 
   Future<void> register({
     required String name,
@@ -22,6 +25,16 @@ class RegistrationCubit extends Cubit<RegistrationState> {
       );
 
       if (result.user != null && result.session != null) {
+        // Always store session for registration (auto-login with remember me)
+        await _authStorage.saveUserSession(
+          userId: result.user!.id,
+          email: result.user!.email ?? email,
+          name: name,
+          accessToken: result.session!.accessToken,
+          refreshToken: result.session!.refreshToken ?? '',
+          rememberMe: true,
+        );
+
         emit(RegistrationSuccess(
           user: result.user!,
           session: result.session!,

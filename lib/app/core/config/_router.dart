@@ -2,6 +2,7 @@ import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shieldx/app/features/auth/pages/_auth_page.dart';
+import 'package:shieldx/app/features/home/pages/_home_page.dart';
 import 'package:shieldx/app/features/splash/pages/_splash_page.dart';
 import 'package:shieldx/app/features/welcome/pages/_welcome_page.dart';
 
@@ -30,6 +31,12 @@ final router = GoRouter(
           ),
         );
       },
+    ),
+
+    GoRoute(
+      path: '/home',
+      pageBuilder: (context, state) =>
+          material3TransitionPage(child: const HomePage()),
     ),
   ],
 );

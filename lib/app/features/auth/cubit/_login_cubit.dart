@@ -1,15 +1,18 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/features/auth/cubit/_auth_states.dart';
 import 'package:shieldx/app/features/auth/services/_login_service.dart';
 
 class LoginCubit extends Cubit<LoginState> {
   final LoginService _loginService;
+  final AuthStorageService _authStorage;
 
-  LoginCubit(this._loginService) : super(LoginInitial());
+  LoginCubit(this._loginService, this._authStorage) : super(LoginInitial());
 
   Future<void> login({
     required String email,
     required String password,
+    bool rememberMe = true,
   }) async {
     try {
       emit(LoginLoading());
@@ -18,6 +21,18 @@ class LoginCubit extends Cubit<LoginState> {
         email: email,
         password: password,
       );
+
+      // Store session if remember me is enabled
+      if (rememberMe) {
+        await _authStorage.saveUserSession(
+          userId: result.user.id,
+          email: result.user.email ?? email,
+          name: result.user.userMetadata?['full_name'] ?? '',
+          accessToken: result.session.accessToken,
+          refreshToken: result.session.refreshToken ?? '',
+          rememberMe: rememberMe,
+        );
+      }
 
       emit(LoginSuccess(
         user: result.user,
@@ -31,6 +46,7 @@ class LoginCubit extends Cubit<LoginState> {
   Future<void> logout() async {
     try {
       await _loginService.logout();
+      await _authStorage.clearUserSession();
       emit(LoginInitial());
     } catch (error) {
       emit(LoginFailure(error.toString()));
