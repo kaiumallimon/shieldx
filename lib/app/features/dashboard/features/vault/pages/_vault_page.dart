@@ -38,7 +38,6 @@ class _VaultPageState extends State<VaultPage> {
 
     if (avatarUrl != null && avatarUrl!.isNotEmpty) {
       return CircleAvatar(
-        radius: 20,
         backgroundImage: CachedNetworkImageProvider(avatarUrl!),
         backgroundColor: theme.colorScheme.primary,
         onBackgroundImageError: (exception, stackTrace) {
@@ -48,7 +47,6 @@ class _VaultPageState extends State<VaultPage> {
     }
 
     return CircleAvatar(
-      radius: 20,
       backgroundColor: theme.colorScheme.primary,
       child: Text(
         firstChar,
@@ -78,12 +76,117 @@ class _VaultPageState extends State<VaultPage> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               sliver: SliverAppBar(
                 backgroundColor: theme.colorScheme.surface,
-                leading: _buildAvatar(theme),
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: _buildAvatar(theme),
+                ),
+                pinned: true,
+
+                actions: [_addButton(theme)],
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 20,
+                ),
+                child: Column(
+                  crossAxisAlignment: .start,
+                  mainAxisSize: .min,
+                  spacing: 10,
+                  children: [
+                    // first row
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 15,
+                      children: [
+                        Text(
+                          'Keep',
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: Image.asset(
+                            images[0],
+                            width: 65,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // second row
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 15,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: Image.asset(
+                            images[1],
+                            width: 65,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Text(
+                          'Your Life',
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // third row
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 15,
+                      children: [
+                        Text(
+                          'Safe & Secure',
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: Image.asset(
+                            images[2],
+                            width: 45,
+                            height: 45,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  ElevatedButton _addButton(ThemeData theme) {
+    return ElevatedButton.icon(
+      icon: const Icon(Icons.add),
+      label: const Text('Add'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+      ),
+      onPressed: () {
+        // Navigate to settings page
+      },
     );
   }
 }

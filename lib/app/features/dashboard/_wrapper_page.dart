@@ -66,22 +66,22 @@ class _WrapperPageState extends State<WrapperPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_getTitle(selectedIndex)),
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.onSurface,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await context.read<LoginCubit>().logout();
-              if (context.mounted) {
-                context.go('/auth');
-              }
-            },
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   title: Text(_getTitle(selectedIndex)),
+      //   backgroundColor: theme.colorScheme.surface,
+      //   foregroundColor: theme.colorScheme.onSurface,
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.logout),
+      //       onPressed: () async {
+      //         await context.read<LoginCubit>().logout();
+      //         if (context.mounted) {
+      //           context.go('/auth');
+      //         }
+      //       },
+      //     ),
+      //   ],
+      // ),
       body: widget.child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

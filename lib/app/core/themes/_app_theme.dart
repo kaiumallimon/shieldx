@@ -4,7 +4,7 @@ import 'package:shieldx/app/core/themes/_app_colors.dart';
 class AppTheme {
   static ThemeData get lightTheme => ThemeData(
     brightness: Brightness.light,
-    fontFamily: 'Google Sans Flex',
+    fontFamily: 'Inter',
     scaffoldBackgroundColor: AppColors.surface,
     primaryColor: AppColors.primary,
     colorScheme: ColorScheme(
