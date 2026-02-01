@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// A horizontal scrollable section displaying password categories.
-///
-/// Features:
-/// - Fixed "Categories" label on the left
-/// - Scrollable category chips with fade effect on edges
-/// - Add category button on the right
-/// - All items maintain consistent 45px height
 class VaultCategoriesSection extends StatelessWidget {
   /// List of category names to display
   final List<String> categories;
