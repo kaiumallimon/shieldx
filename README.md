@@ -25,6 +25,12 @@ A secure password manager Flutter application that stores your passwords with mi
     <td align="center"><b>Registration</b></td>
     <td align="center"><b>Login</b></td>
   </tr>
+  <tr>
+    <td><img src="screenshots/Screenshot_1769915065.png" alt="Vault Page" width="250"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Vault Page</b></td>
+  </tr>
 </table>
 
 ## Features Implemented
