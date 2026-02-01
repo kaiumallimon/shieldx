@@ -6,6 +6,7 @@ import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_ava
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_slogan_section.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_password_health_card.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_categories_section.dart';
+import 'package:shieldx/app/shared/widgets/_custom_textfield.dart';
 
 class VaultPage extends StatefulWidget {
   const VaultPage({super.key});
@@ -143,31 +144,10 @@ class _VaultPageState extends State<VaultPage> {
                                             ),
                                       ),
                                       const SizedBox(height: 24),
-                                      TextField(
-                                        autofocus: true,
-                                        decoration: InputDecoration(
-                                          labelText: 'Category Name',
-                                          hintText:
-                                              'e.g., Banking, Entertainment',
-                                          prefixIcon: Icon(
-                                            Icons.label_outline,
-                                            color: theme.colorScheme.primary,
-                                          ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: theme.colorScheme.primary,
-                                              width: 2,
-                                            ),
-                                          ),
-                                        ),
+                                      CustomTextField(
+                                        hint: 'e.g., Banking, Entertainment',
+                                        label: 'Category Name',
+                                        prefixIcon: Icons.label_outline,
                                       ),
                                       const SizedBox(height: 24),
                                       Row(
@@ -183,6 +163,12 @@ class _VaultPageState extends State<VaultPage> {
                                                       vertical: 16,
                                                     ),
                                                 shape: RoundedRectangleBorder(
+                                                  side: BorderSide(
+                                                    color: theme
+                                                        .colorScheme
+                                                        .primary,
+                                                    width: 2,
+                                                  ),
                                                   borderRadius:
                                                       BorderRadius.circular(12),
                                                 ),
