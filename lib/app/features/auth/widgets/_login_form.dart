@@ -248,47 +248,56 @@ class _LoginFormState extends State<LoginForm> {
                 ],
               ),
               const SizedBox(height: 20),
-              OutlinedButton(
-                onPressed: () {
-                  // Handle login with Google
-                },
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(54),
-                  backgroundColor: theme.colorScheme.surface,
-                  side: BorderSide(
-                    color: theme.colorScheme.onSurface.withAlpha(40),
-                    width: 1.3,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/google.png',
-                      height: 24,
-                      width: 24,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.g_mobiledata,
-                          size: 28,
-                          color: theme.colorScheme.onSurface,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Login with Google',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        fontWeight: FontWeight.w500,
+              BlocBuilder<LoginCubit, LoginState>(
+                builder: (context, state) {
+                  final isLoading = state is LoginLoading;
+                  return OutlinedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            context.read<LoginCubit>().loginWithGoogle(
+                                  rememberMe: rememberMe,
+                                );
+                          },
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(54),
+                      backgroundColor: theme.colorScheme.surface,
+                      side: BorderSide(
+                        color: theme.colorScheme.onSurface.withAlpha(40),
+                        width: 1.3,
                       ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
                     ),
-                  ],
-                ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/google.png',
+                          height: 24,
+                          width: 24,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.g_mobiledata,
+                              size: 28,
+                              color: theme.colorScheme.onSurface,
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Login with Google',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
             ],

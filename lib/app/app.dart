@@ -5,6 +5,7 @@ import 'package:shieldx/app/core/themes/_app_theme.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/features/auth/cubit/_login_cubit.dart';
 import 'package:shieldx/app/features/auth/cubit/_registration_cubit.dart';
+import 'package:shieldx/app/features/auth/services/_google_auth_service.dart';
 import 'package:shieldx/app/features/auth/services/_login_service.dart';
 import 'package:shieldx/app/features/auth/services/_registration_service.dart';
 
@@ -18,12 +19,14 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => LoginCubit(
             LoginService(),
+            GoogleAuthService(),
             AuthStorageService(),
           ),
         ),
         BlocProvider(
           create: (context) => RegistrationCubit(
             RegistrationService(),
+            GoogleAuthService(),
             AuthStorageService(),
           ),
         ),

@@ -262,47 +262,54 @@ class _RegistrationFormState extends State<RegistrationForm> {
               ],
             ),
             const SizedBox(height: 24),
-            OutlinedButton(
-              onPressed: () {
-                // Handle registration with Google
-              },
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(54),
-                backgroundColor: theme.colorScheme.surface,
-                side: BorderSide(
-                  color: theme.colorScheme.onSurface.withAlpha(40),
-                  width: 1.3,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    'assets/images/google.png',
-                    height: 24,
-                    width: 24,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        Icons.g_mobiledata,
-                        size: 28,
-                        color: theme.colorScheme.onSurface,
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Register with Google',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.w500,
+            BlocBuilder<RegistrationCubit, RegistrationState>(
+              builder: (context, state) {
+                final isLoading = state is RegistrationLoading;
+                return OutlinedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          context.read<RegistrationCubit>().registerWithGoogle();
+                        },
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(54),
+                    backgroundColor: theme.colorScheme.surface,
+                    side: BorderSide(
+                      color: theme.colorScheme.onSurface.withAlpha(40),
+                      width: 1.3,
                     ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/google.png',
+                        height: 24,
+                        width: 24,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.g_mobiledata,
+                            size: 28,
+                            color: theme.colorScheme.onSurface,
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Register with Google',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 32),
           ],
