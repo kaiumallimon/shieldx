@@ -3,8 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shieldx/app/features/auth/cubit/_login_cubit.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class WrapperPage extends StatelessWidget {
+  const WrapperPage({super.key, required this.child});
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
