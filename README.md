@@ -307,6 +307,19 @@ CREATE TABLE profiles (
 ## Build & Deploy
 
 ### Android
+The AndroidManifest.xml is already configured with deep linking for Google OAuth:
+```xml
+<intent-filter>
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <data
+        android:scheme="io.supabase.shieldx"
+        android:host="login-callback" />
+</intent-filter>
+```
+
+Build release APK:
 ```bash
 flutter build apk --release
 ```
@@ -326,7 +339,7 @@ flutter build web --release
 - [ ] Password vault with encrypted storage
 - [ ] Password generator
 - [ ] Biometric authentication (fingerprint/face ID)
-- [ ] Google OAuth integration
+- [x] Google OAuth integration
 - [ ] Password strength indicator
 - [ ] Secure notes
 - [ ] Auto-fill integration
