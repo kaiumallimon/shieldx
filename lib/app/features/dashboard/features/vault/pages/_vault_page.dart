@@ -6,6 +6,7 @@ import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_ava
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_slogan_section.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_password_health_card.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_categories_section.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_types_section.dart';
 
 class VaultPage extends StatefulWidget {
   const VaultPage({super.key});
@@ -48,6 +49,16 @@ class _VaultPageState extends State<VaultPage> {
     'Finance',
     'Shopping',
   ];
+
+  // Available password types for filtering
+  final List<String> _types = [
+    'Login',
+    'API Key',
+    'Credit Card',
+    'Note',
+    'Identity',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -71,10 +82,7 @@ class _VaultPageState extends State<VaultPage> {
                       width: 2.5,
                     ),
                   ),
-                  child: VaultAvatar(
-                    userName: userName,
-                    avatarUrl: avatarUrl,
-                  ),
+                  child: VaultAvatar(userName: userName, avatarUrl: avatarUrl),
                 ),
                 pinned: true,
                 actions: [
@@ -95,6 +103,18 @@ class _VaultPageState extends State<VaultPage> {
                 onAddCategory: () => showAddCategoryBottomSheet(context),
                 onCategoryTap: (category) {
                   // category tap
+                },
+              ),
+            ),
+            // Horizontal scrollable types with fade effect
+            SliverToBoxAdapter(
+              child: VaultTypesSection(
+                types: _types,
+                onAddType: () {
+                  // Add type tap - can create similar bottom sheet for types
+                },
+                onTypeTap: (type) {
+                  // type tap
                 },
               ),
             ),
