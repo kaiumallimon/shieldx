@@ -21,7 +21,23 @@ class LoginService {
         throw Exception('Login failed');
       }
 
-      return LoginModel.fromAuthResponse(response);
+      // Fetch profile data including avatar_url
+      String? avatarUrl;
+      try {
+        final profile = await client
+            .from('profiles')
+            .select('avatar_url')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (profile != null) {
+          avatarUrl = profile['avatar_url'] as String?;
+        }
+      } catch (_) {
+        // If profile fetch fails, continue without avatar
+      }
+
+      return LoginModel.fromAuthResponse(response, avatarUrl: avatarUrl);
     } catch (error) {
       rethrow;
     }
@@ -59,16 +75,19 @@ class LoginService {
 class LoginModel {
   final User user;
   final Session session;
+  final String? avatarUrl;
 
   LoginModel({
     required this.user,
     required this.session,
+    this.avatarUrl,
   });
 
-  factory LoginModel.fromAuthResponse(AuthResponse response) {
+  factory LoginModel.fromAuthResponse(AuthResponse response, {String? avatarUrl}) {
     return LoginModel(
       user: response.user!,
       session: response.session!,
+      avatarUrl: avatarUrl,
     );
   }
 
