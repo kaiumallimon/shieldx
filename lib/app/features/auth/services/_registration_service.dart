@@ -14,7 +14,7 @@ class RegistrationService {
       final response = await client.auth.signUp(
         email: email,
         password: password,
-        
+
       );
 
       final user = response.user;
@@ -50,16 +50,19 @@ class RegistrationService {
 class RegistrationModel{
   final User? user;
   final Session? session;
+  final String? avatarUrl;
 
   RegistrationModel({
     required this.user,
     required this.session,
+    this.avatarUrl,
   });
 
-  factory RegistrationModel.fromAuthResponse(AuthResponse response){
+  factory RegistrationModel.fromAuthResponse(AuthResponse response, {String? avatarUrl}){
     return RegistrationModel(
       user: response.user,
       session: response.session,
+      avatarUrl: avatarUrl,
     );
   }
 

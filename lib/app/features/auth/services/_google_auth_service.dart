@@ -23,9 +23,25 @@ class GoogleAuthService {
           // Check if profile exists, create if not
           await _ensureProfileExists(session.user);
 
+          // Fetch avatar URL from profile
+          String? avatarUrl = session.user.userMetadata?['avatar_url'] as String? ??
+              session.user.userMetadata?['picture'] as String?;
+
+          try {
+            final profile = await client
+                .from('profiles')
+                .select('avatar_url')
+                .eq('id', session.user.id)
+                .maybeSingle();
+            if (profile != null && profile['avatar_url'] != null) {
+              avatarUrl = profile['avatar_url'] as String?;
+            }
+          } catch (_) {}
+
           completer.complete(GoogleAuthModel(
             user: session.user,
             session: session,
+            avatarUrl: avatarUrl,
           ));
         }
       });
@@ -92,9 +108,11 @@ class GoogleAuthService {
 class GoogleAuthModel {
   final User user;
   final Session session;
+  final String? avatarUrl;
 
   GoogleAuthModel({
     required this.user,
     required this.session,
+    this.avatarUrl,
   });
 }

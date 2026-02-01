@@ -2,7 +2,12 @@ import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shieldx/app/features/auth/pages/_auth_page.dart';
-import 'package:shieldx/app/features/home/pages/_home_page.dart';
+import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
+import 'package:shieldx/app/features/dashboard/features/generator/pages/_generator_page.dart';
+import 'package:shieldx/app/features/dashboard/features/security/pages/_security_page.dart';
+import 'package:shieldx/app/features/dashboard/features/settings/pages/_settings_page.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/pages/_vault_page.dart';
+import 'package:shieldx/app/features/dashboard/features/tools/pages/_tools_page.dart';
 import 'package:shieldx/app/features/splash/pages/_splash_page.dart';
 import 'package:shieldx/app/features/welcome/pages/_welcome_page.dart';
 
@@ -33,10 +38,43 @@ final router = GoRouter(
       },
     ),
 
-    GoRoute(
-      path: '/home',
-      pageBuilder: (context, state) =>
-          material3TransitionPage(child: const HomePage()),
+    ShellRoute(
+      builder: (context, state, child) {
+        return WrapperPage(child: child);
+      },
+      routes: [
+        GoRoute(
+          path: '/home',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: const VaultPage());
+          },
+        ),
+        GoRoute(
+          path: '/security',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: const SecurityPage());
+          },
+        ),
+        GoRoute(
+          path: '/generator',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: const PasswordGeneratorPage());
+          },
+        ),
+
+        GoRoute(
+          path: '/tools',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: const ToolsPage());
+          },
+        ),
+        GoRoute(
+          path: '/settings',
+          pageBuilder: (context, state) {
+            return NoTransitionPage(child: const SettingsPage());
+          },
+        ),
+      ],
     ),
   ],
 );
