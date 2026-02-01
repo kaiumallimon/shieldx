@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shieldx/app/features/auth/cubit/_login_cubit.dart';
@@ -54,6 +55,15 @@ class _WrapperPageState extends State<WrapperPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final selectedIndex = _getSelectedIndex(context);
+
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: theme.colorScheme.surface,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: theme.colorScheme.surface,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(

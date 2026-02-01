@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 
@@ -37,22 +38,17 @@ class _VaultPageState extends State<VaultPage> {
 
     if (avatarUrl != null && avatarUrl!.isNotEmpty) {
       return CircleAvatar(
-        backgroundImage: NetworkImage(avatarUrl!),
+        radius: 20,
+        backgroundImage: CachedNetworkImageProvider(avatarUrl!),
         backgroundColor: theme.colorScheme.primary,
-        child: Text(
-          firstChar,
-          style: TextStyle(
-            color: theme.colorScheme.onPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
         onBackgroundImageError: (exception, stackTrace) {
-          // If image fails to load, it will show the text
+          // If image fails to load, fallback is handled by backgroundColor
         },
       );
     }
 
     return CircleAvatar(
+      radius: 20,
       backgroundColor: theme.colorScheme.primary,
       child: Text(
         firstChar,
@@ -78,12 +74,13 @@ class _VaultPageState extends State<VaultPage> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            SliverAppBar(
-              leading: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: _buildAvatar(theme),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              sliver: SliverAppBar(
+                backgroundColor: theme.colorScheme.surface,
+                leading: _buildAvatar(theme),
               ),
-            )
+            ),
           ],
         ),
       ),
