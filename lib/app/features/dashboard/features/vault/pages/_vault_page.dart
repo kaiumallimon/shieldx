@@ -61,9 +61,20 @@ class _VaultPageState extends State<VaultPage> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               sliver: SliverAppBar(
                 backgroundColor: theme.colorScheme.surface,
-                leading: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: VaultAvatar(userName: userName, avatarUrl: avatarUrl),
+                leading: Container(
+                  padding: const EdgeInsets.all(2),
+                  margin: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.primary,
+                      width: 2.5,
+                    ),
+                  ),
+                  child: VaultAvatar(
+                    userName: userName,
+                    avatarUrl: avatarUrl,
+                  ),
                 ),
                 pinned: true,
                 actions: [

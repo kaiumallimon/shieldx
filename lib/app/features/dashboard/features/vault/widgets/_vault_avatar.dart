@@ -29,7 +29,6 @@ class VaultAvatar extends StatelessWidget {
     }
 
     return CircleAvatar(
-      backgroundColor: theme.colorScheme.primary,
       child: Text(
         firstChar,
         style: TextStyle(
