@@ -33,7 +33,7 @@ class GoogleAuthService {
       // Start OAuth flow - this will open browser
       final success = await client.auth.signInWithOAuth(
         OAuthProvider.google,
-        authScreenLaunchMode: LaunchMode.externalApplication,
+        redirectTo: 'io.supabase.shieldx://login-callback',
       );
 
       if (!success) {
