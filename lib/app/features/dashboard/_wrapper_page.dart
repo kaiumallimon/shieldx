@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shieldx/app/features/auth/cubit/_login_cubit.dart';
 
+
+final wrapperScaffoldKey = GlobalKey<ScaffoldState>();
+
 class WrapperPage extends StatefulWidget {
   const WrapperPage({super.key, required this.child});
   final Widget child;
@@ -31,7 +34,7 @@ class _WrapperPageState extends State<WrapperPage> {
     }
   }
 
-  void _onItemTapped(int index) {
+    void _onItemTapped(int index) {
     switch (index) {
       case 0:
         context.go('/home');
@@ -66,6 +69,7 @@ class _WrapperPageState extends State<WrapperPage> {
     );
 
     return Scaffold(
+      key: wrapperScaffoldKey,
       // appBar: AppBar(
       //   title: Text(_getTitle(selectedIndex)),
       //   backgroundColor: theme.colorScheme.surface,
