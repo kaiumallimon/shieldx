@@ -32,12 +32,15 @@ A secure password manager Flutter application that stores your passwords with mi
 ### Authentication System
 - **User Registration** with email and password
 - **User Login** with credentials validation
+- **Google OAuth Integration** with automatic account creation
+  - Sign in with Google on both login and registration
+  - Automatic profile creation from Google account data
+  - Deep linking for seamless OAuth callback
 - **Auto-login** after successful registration
 - **Remember Me** functionality with local session storage
 - **Logout** with session cleanup
 - **Session Persistence** using SharedPreferences
 - **Authentication State Management** using BLoC/Cubit pattern
-- **Google Sign-In** UI (ready for integration)
 
 ### Modern UI/UX
 - **Material 3 Design** with custom color scheme
@@ -152,7 +155,8 @@ lib/
     │   │   │   └── _registration_form.dart # Registration form
     │   │   ├── services/
     │   │   │   ├── _login_service.dart        # Login API calls
-    │   │   │   └── _registration_service.dart # Registration API
+    │   │   │   ├── _registration_service.dart # Registration API
+    │   │   │   └── _google_auth_service.dart  # Google OAuth
     │   │   └── cubit/
     │   │       ├── _auth_states.dart     # Auth state definitions
     │   │       ├── _login_cubit.dart     # Login state management
@@ -213,7 +217,18 @@ CREATE TABLE profiles (
    - Stores session if "Remember Me" enabled
    - Navigates to Home
 
-4. **Logout**:
+4. **Google OAuth**:
+   - User clicks "Login/Register with Google"
+   - Opens external browser with Google sign-in
+   - User authenticates with Google account
+   - Browser redirects to deep link URL
+   - Android opens app automatically via intent filter
+   - Auth state listener detects new session
+   - Creates profile if first-time user
+   - Stores session locally
+   - Navigates to Home
+
+5. **Logout**:
    - Clears Supabase session
    - Clears local SharedPreferences
    - Navigates to Auth page
@@ -267,14 +282,24 @@ CREATE TABLE profiles (
    - Run the migration in `supabase/migrations/001_create_profiles.sql`
    - Get your Supabase URL and anon key
 
-4. **Configure environment variables**
+4. **Configure Google OAuth** (for Google Sign-In)
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create OAuth 2.0 credentials
+   - Add authorized redirect URI: `https://<your-project-ref>.supabase.co/auth/v1/callback`
+   - In Supabase Dashboard → Authentication → Providers:
+     - Enable Google provider
+     - Add your Google Client ID and Client Secret
+   - In Supabase Dashboard → Authentication → URL Configuration:
+     - Add redirect URL: `io.supabase.shieldx://login-callback`
+
+5. **Configure environment variables**
    Create a `.env` file in the root directory:
    ```env
    SUPABASE_URL=your_supabase_url
    SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
 
-5. **Run the app**
+6. **Run the app**
    ```bash
    flutter run
    ```
