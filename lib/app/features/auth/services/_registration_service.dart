@@ -14,6 +14,7 @@ class RegistrationService {
       final response = await client.auth.signUp(
         email: email,
         password: password,
+        
       );
 
       final user = response.user;

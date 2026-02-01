@@ -50,7 +50,7 @@ class _SplashPageState extends State<SplashPage> {
       // Clear any stale local data
       await _authStorage.clearUserSession();
       // User is not authenticated, go to auth page
-      if (mounted) context.go('/auth');
+      if (mounted) context.go('/welcome');
     }
   }
 

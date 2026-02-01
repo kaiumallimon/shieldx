@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/features/auth/cubit/_auth_states.dart';
 import 'package:shieldx/app/features/auth/services/_registration_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegistrationCubit extends Cubit<RegistrationState> {
   final RegistrationService _registrationService;
@@ -42,8 +43,10 @@ class RegistrationCubit extends Cubit<RegistrationState> {
       } else {
         emit(const RegistrationFailure('Registration failed'));
       }
+    } on AuthException catch (e) {
+      emit(RegistrationFailure(e.message));
     } catch (error) {
-      emit(RegistrationFailure(error.toString()));
+      emit(RegistrationFailure(error.toString().replaceAll('Exception: ', '')));
     }
   }
 
