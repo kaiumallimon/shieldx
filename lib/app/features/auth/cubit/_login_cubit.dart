@@ -56,6 +56,7 @@ class LoginCubit extends Cubit<LoginState> {
     try {
       emit(LoginLoading());
 
+      // This will wait for the OAuth callback automatically
       final result = await _googleAuthService.signInWithGoogle();
 
       // Store session if remember me is enabled

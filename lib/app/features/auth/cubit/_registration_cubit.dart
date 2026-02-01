@@ -59,6 +59,7 @@ class RegistrationCubit extends Cubit<RegistrationState> {
     try {
       emit(RegistrationLoading());
 
+      // This will wait for the OAuth callback automatically
       final result = await _googleAuthService.signInWithGoogle();
 
       // Always store session for registration (auto-login with remember me)
