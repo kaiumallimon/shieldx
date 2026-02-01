@@ -14,7 +14,10 @@ class VaultPage extends StatefulWidget {
 }
 
 class _VaultPageState extends State<VaultPage> {
+  // Service for managing authentication and user session data
   final AuthStorageService _authStorage = AuthStorageService();
+
+  // User profile information
   String? userName;
   String? avatarUrl;
 
@@ -24,6 +27,7 @@ class _VaultPageState extends State<VaultPage> {
     _loadUserData();
   }
 
+  /// Fetches user session data from storage and updates the UI
   Future<void> _loadUserData() async {
     final session = await _authStorage.getUserSession();
     print(session);
@@ -35,6 +39,7 @@ class _VaultPageState extends State<VaultPage> {
     }
   }
 
+  // Available password categories for filtering
   final List<String> _categories = [
     'All',
     'Social',
@@ -51,6 +56,7 @@ class _VaultPageState extends State<VaultPage> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
+            // App bar with user avatar and add button
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               sliver: SliverAppBar(
@@ -69,18 +75,21 @@ class _VaultPageState extends State<VaultPage> {
                 ],
               ),
             ),
+            // Welcome slogan section
             const SliverToBoxAdapter(child: VaultSloganSection()),
+            // Horizontal scrollable categories with fade effect
             SliverToBoxAdapter(
               child: VaultCategoriesSection(
                 categories: _categories,
                 onAddCategory: () {
-                  // Handle add category
+                  // add category tap
                 },
                 onCategoryTap: (category) {
-                  // Handle category tap
+                  // category tap
                 },
               ),
             ),
+            // Password health statistics card
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(

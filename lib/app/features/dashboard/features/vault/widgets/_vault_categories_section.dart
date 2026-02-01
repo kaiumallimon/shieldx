@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 
+/// A horizontal scrollable section displaying password categories.
+///
+/// Features:
+/// - Fixed "Categories" label on the left
+/// - Scrollable category chips with fade effect on edges
+/// - Add category button on the right
+/// - All items maintain consistent 45px height
 class VaultCategoriesSection extends StatelessWidget {
+  /// List of category names to display
   final List<String> categories;
+
+  /// Callback when the add category button is tapped
   final VoidCallback? onAddCategory;
+
+  /// Callback when a category chip is tapped, receives the category name
   final Function(String)? onCategoryTap;
 
   const VaultCategoriesSection({
@@ -23,6 +35,7 @@ class VaultCategoriesSection extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Fixed "Categories" label
           Container(
             height: 45,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -38,8 +51,10 @@ class VaultCategoriesSection extends StatelessWidget {
               ),
             ),
           ),
+          // Scrollable categories with fade effect
           Expanded(
             child: ShaderMask(
+              // Creates a gradient fade on both edges (left 5%, right 15%)
               shaderCallback: (Rect bounds) {
                 return LinearGradient(
                   begin: Alignment.centerLeft,
@@ -88,6 +103,7 @@ class VaultCategoriesSection extends StatelessWidget {
               ),
             ),
           ),
+          // Add category button (circular with icon)
           GestureDetector(
             onTap: onAddCategory,
             child: Container(
