@@ -34,6 +34,14 @@ class _VaultPageState extends State<VaultPage> {
     }
   }
 
+  final List<String> _categories = [
+    'All',
+    'Social',
+    'Work',
+    'Finance',
+    'Shopping',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -61,6 +69,101 @@ class _VaultPageState extends State<VaultPage> {
               ),
             ),
             const SliverToBoxAdapter(child: VaultSloganSection()),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 45,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withAlpha(50),
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: Text(
+                        'Categories',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: const [
+                              Colors.transparent,
+                              Colors.black,
+                              Colors.black,
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.05, 0.85, 1.0],
+                          ).createShader(bounds);
+                        },
+                        blendMode: BlendMode.dstIn,
+                        child: SizedBox(
+                          height: 45,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: List.generate(_categories.length, (
+                              index,
+                            ) {
+                              return GestureDetector(
+                                onTap: () {},
+                                child: Container(
+                                  height: 45,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                  ),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withAlpha(
+                                      50,
+                                    ),
+                                    borderRadius: BorderRadius.circular(50),
+                                  ),
+                                  child: Text(
+                                    _categories[index],
+                                    style: theme.textTheme.labelLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.onSurface
+                                          .withAlpha(128),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        height: 45,
+                        width: 45,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary,
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        child: Icon(
+                          Icons.add,
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
             SliverToBoxAdapter(
               child: Padding(

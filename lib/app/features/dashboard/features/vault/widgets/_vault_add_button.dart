@@ -11,7 +11,7 @@ class VaultAddButton extends StatelessWidget {
 
     return ElevatedButton.icon(
       icon: const Icon(Icons.add),
-      label: const Text('Add'),
+      label: const Text('New Password'),
       style: ElevatedButton.styleFrom(
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: theme.colorScheme.onPrimary,

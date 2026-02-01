@@ -33,7 +33,7 @@ class VaultPasswordHealthCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withAlpha(128),
+            color: theme.colorScheme.secondary.withAlpha(120),
             borderRadius: BorderRadius.circular(13),
           ),
           child: Row(
@@ -49,24 +49,30 @@ class VaultPasswordHealthCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.secondary.withAlpha(50),
+                        color: theme.colorScheme.secondary.withAlpha(150),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.lock_outline_rounded,
-                        color: theme.colorScheme.onPrimary,
+                        color: theme.colorScheme.onSecondary,
                       ),
                     ),
                     const SizedBox(height: 10),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('Total Passwords'),
+                        Text(
+                          'Total Passwords',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSecondary.withAlpha(200),
+                          ),
+                        ),
                         const SizedBox(width: 5),
                         Text(
                           '$totalPasswords',
                           style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSecondary,
                           ),
                         ),
                       ],
@@ -134,7 +140,7 @@ class VaultPasswordHealthCard extends StatelessWidget {
           '$count',
           style: theme.textTheme.headlineLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onPrimary,
+            color: theme.colorScheme.onSecondary,
           ),
         ),
         const SizedBox(width: 8),
@@ -142,7 +148,7 @@ class VaultPasswordHealthCard extends StatelessWidget {
           label,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w500,
-            color: theme.colorScheme.onPrimary.withAlpha(230),
+            color: theme.colorScheme.onSecondary.withAlpha(230),
           ),
         ),
       ],
