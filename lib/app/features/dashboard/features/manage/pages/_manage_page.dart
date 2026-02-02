@@ -70,7 +70,7 @@ class ManagePage extends StatelessWidget {
                   slivers: [
                     // Top spacing for appbar
                     SliverToBoxAdapter(
-                      child: SizedBox(height: appBarHeight + MediaQuery.of(context).padding.top),
+                      child: SizedBox(height: appBarHeight + MediaQuery.of(context).padding.top + 10),
                     ),
                     // All passwords card
                     SliverToBoxAdapter(
@@ -269,23 +269,24 @@ class ManagePage extends StatelessWidget {
                   child: IgnorePointer(
                     child: ClipRect(
                       child: Container(
-                        height: appBarHeight + MediaQuery.of(context).padding.top + 80,
+                        height: appBarHeight + MediaQuery.of(context).padding.top + 100,
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
                               theme.colorScheme.surface,
+                              theme.colorScheme.surface,
                               theme.colorScheme.surface.withAlpha(250),
-                              theme.colorScheme.surface.withAlpha(220),
-                              theme.colorScheme.surface.withAlpha(180),
-                              theme.colorScheme.surface.withAlpha(130),
-                              theme.colorScheme.surface.withAlpha(80),
-                              theme.colorScheme.surface.withAlpha(40),
-                              theme.colorScheme.surface.withAlpha(10),
+                              theme.colorScheme.surface.withAlpha(230),
+                              theme.colorScheme.surface.withAlpha(200),
+                              theme.colorScheme.surface.withAlpha(160),
+                              theme.colorScheme.surface.withAlpha(110),
+                              theme.colorScheme.surface.withAlpha(60),
+                              theme.colorScheme.surface.withAlpha(20),
                               theme.colorScheme.surface.withAlpha(0),
                             ],
-                            stops: const [0.0, 0.3, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1.0],
+                            stops: const [0.0, 0.35, 0.5, 0.6, 0.68, 0.75, 0.82, 0.9, 0.96, 1.0],
                           ),
                         ),
                       ),
