@@ -55,12 +55,18 @@ class ManagePage extends StatelessWidget {
         final appBarHeight = windowSize.height * 0.067;
 
         return Scaffold(
+          backgroundColor: theme.colorScheme.surface,
           body: SafeArea(
+            top: false,
             child: Stack(
               children: [
+                // Background
+                Container(
+                  color: theme.colorScheme.surface,
+                ),
                 // Scrollable content with top padding
                 Padding(
-                  padding: EdgeInsets.only(top: appBarHeight+10),
+                  padding: EdgeInsets.only(top: appBarHeight + MediaQuery.of(context).padding.top),
                   child: CustomScrollView(
                     physics: const BouncingScrollPhysics(),
                     slivers: [
@@ -254,94 +260,105 @@ class ManagePage extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Fixed AppBar
-                Container(
-                  height: appBarHeight,
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  decoration: BoxDecoration(color: theme.colorScheme.surface),
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.all(8),
-                        padding: const EdgeInsets.all(13),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surface,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.colorScheme.onSurface.withAlpha(20),
-                              offset: const Offset(2, 2),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: GestureDetector(
-                          child: Icon(
-                            Icons.menu,
-                            color: theme.colorScheme.onSurface,
-                            size: 20,
-                          ),
-                          onTap: () {
-                            wrapperScaffoldKey.currentState?.openDrawer();
-                          },
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          'Manage Vault',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(13),
-                        margin: const EdgeInsets.only(right: 8),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surface,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.colorScheme.onSurface.withAlpha(20),
-                              offset: const Offset(2, 2),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: GestureDetector(
-                          child: Icon(
-                            CupertinoIcons.refresh,
-                            color: theme.colorScheme.onSurface,
-                            size: 20,
-                          ),
-                          onTap: () => context.read<ManageCubit>().loadData(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Gradient fade overlay at the top
+                // Fade background
                 Positioned(
-                  top: appBarHeight,
+                  top: 0,
                   left: 0,
                   right: 0,
                   child: IgnorePointer(
-                    child: Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            theme.colorScheme.surface,
-                            theme.colorScheme.surface.withAlpha(200),
-                            theme.colorScheme.surface.withAlpha(100),
-                            theme.colorScheme.surface.withAlpha(0),
-                          ],
-                          stops: const [0.0, 0.3, 0.6, 1.0],
+                    child: ClipRect(
+                      child: Container(
+                        height: appBarHeight + MediaQuery.of(context).padding.top + 80,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              theme.colorScheme.surface,
+                              theme.colorScheme.surface.withAlpha(250),
+                              theme.colorScheme.surface.withAlpha(220),
+                              theme.colorScheme.surface.withAlpha(180),
+                              theme.colorScheme.surface.withAlpha(130),
+                              theme.colorScheme.surface.withAlpha(80),
+                              theme.colorScheme.surface.withAlpha(40),
+                              theme.colorScheme.surface.withAlpha(10),
+                              theme.colorScheme.surface.withAlpha(0),
+                            ],
+                            stops: const [0.0, 0.3, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1.0],
+                          ),
                         ),
                       ),
+                    ),
+                  ),
+                ),
+                // Fixed AppBar (transparent)
+                Positioned(
+                  top: MediaQuery.of(context).padding.top,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: appBarHeight,
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Row(
+                      spacing: 8,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(13),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.colorScheme.onSurface.withAlpha(20),
+                                offset: const Offset(2, 2),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+                          child: GestureDetector(
+                            child: Icon(
+                              Icons.menu,
+                              color: theme.colorScheme.onSurface,
+                              size: 20,
+                            ),
+                            onTap: () {
+                              wrapperScaffoldKey.currentState?.openDrawer();
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            'Manage Vault',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(13),
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.colorScheme.onSurface.withAlpha(20),
+                                offset: const Offset(2, 2),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+                          child: GestureDetector(
+                            child: Icon(
+                              CupertinoIcons.refresh,
+                              color: theme.colorScheme.onSurface,
+                              size: 20,
+                            ),
+                            onTap: () => context.read<ManageCubit>().loadData(),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
