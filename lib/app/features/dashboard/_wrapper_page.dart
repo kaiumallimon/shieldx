@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shieldx/app/features/auth/cubit/_login_cubit.dart';
-
+import 'shared/widgets/app_drawer.dart';
 
 final wrapperScaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -27,14 +25,14 @@ class _WrapperPageState extends State<WrapperPage> {
         return 2;
       case '/tools':
         return 3;
-      case '/settings':
+      case '/manage':
         return 4;
       default:
         return 0;
     }
   }
 
-    void _onItemTapped(int index) {
+  void _onItemTapped(int index) {
     switch (index) {
       case 0:
         context.go('/home');
@@ -49,7 +47,7 @@ class _WrapperPageState extends State<WrapperPage> {
         context.go('/tools');
         break;
       case 4:
-        context.go('/settings');
+        context.go('/manage');
         break;
     }
   }
@@ -70,22 +68,7 @@ class _WrapperPageState extends State<WrapperPage> {
 
     return Scaffold(
       key: wrapperScaffoldKey,
-      // appBar: AppBar(
-      //   title: Text(_getTitle(selectedIndex)),
-      //   backgroundColor: theme.colorScheme.surface,
-      //   foregroundColor: theme.colorScheme.onSurface,
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.logout),
-      //       onPressed: () async {
-      //         await context.read<LoginCubit>().logout();
-      //         if (context.mounted) {
-      //           context.go('/auth');
-      //         }
-      //       },
-      //     ),
-      //   ],
-      // ),
+      drawer: const AppDrawer(),
       body: widget.child,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -125,30 +108,13 @@ class _WrapperPageState extends State<WrapperPage> {
               label: 'Tools',
             ),
             NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Settings',
+              icon: Icon(Icons.category_outlined),
+              selectedIcon: Icon(Icons.category),
+              label: 'Manage',
             ),
           ],
         ),
       ),
     );
-  }
-
-  String _getTitle(int index) {
-    switch (index) {
-      case 0:
-        return 'Password Vault';
-      case 1:
-        return 'Security Check';
-      case 2:
-        return 'Password Generator';
-      case 3:
-        return 'Tools';
-      case 4:
-        return 'Settings';
-      default:
-        return 'ShieldX';
-    }
   }
 }

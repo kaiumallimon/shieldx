@@ -8,6 +8,10 @@ import 'package:shieldx/app/features/dashboard/features/security/pages/_security
 import 'package:shieldx/app/features/dashboard/features/settings/pages/_settings_page.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/pages/_vault_page.dart';
 import 'package:shieldx/app/features/dashboard/features/tools/pages/_tools_page.dart';
+import 'package:shieldx/app/features/dashboard/features/manage/pages/_manage_page.dart';
+import 'package:shieldx/app/features/dashboard/features/manage/pages/_all_passwords_page.dart';
+import 'package:shieldx/app/features/dashboard/features/manage/pages/_category_detail_page.dart';
+import 'package:shieldx/app/features/dashboard/features/manage/pages/_type_detail_page.dart';
 import 'package:shieldx/app/features/splash/pages/_splash_page.dart';
 import 'package:shieldx/app/features/welcome/pages/_welcome_page.dart';
 
@@ -69,12 +73,44 @@ final router = GoRouter(
           },
         ),
         GoRoute(
-          path: '/settings',
+          path: '/manage',
           pageBuilder: (context, state) {
-            return NoTransitionPage(child: const SettingsPage());
+            return NoTransitionPage(child: const ManagePage());
           },
         ),
       ],
+    ),
+
+    // Settings page (outside shell route, accessed via drawer)
+    GoRoute(
+      path: '/settings',
+      pageBuilder: (context, state) =>
+          material3TransitionPage(child: const SettingsPage()),
+    ),
+
+    // Manage sub-pages
+    GoRoute(
+      path: '/manage/all-passwords',
+      pageBuilder: (context, state) =>
+          material3TransitionPage(child: const AllPasswordsPage()),
+    ),
+    GoRoute(
+      path: '/manage/category/:category',
+      pageBuilder: (context, state) {
+        final category = state.pathParameters['category'] ?? '';
+        return material3TransitionPage(
+          child: CategoryDetailPage(category: category),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/manage/type/:type',
+      pageBuilder: (context, state) {
+        final type = state.pathParameters['type'] ?? '';
+        return material3TransitionPage(
+          child: TypeDetailPage(type: type),
+        );
+      },
     ),
   ],
 );

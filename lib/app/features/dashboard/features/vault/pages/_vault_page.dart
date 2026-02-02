@@ -3,7 +3,6 @@ import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_button.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_category_bottom_sheet.dart';
-import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_avatar.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_slogan_section.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_password_health_card.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_categories_section.dart';
@@ -73,17 +72,11 @@ class _VaultPageState extends State<VaultPage> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               sliver: SliverAppBar(
                 backgroundColor: theme.colorScheme.surface,
-                leading: Container(
-                  padding: const EdgeInsets.all(2),
-                  margin: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: theme.colorScheme.primary,
-                      width: 2.5,
-                    ),
-                  ),
-                  child: VaultAvatar(userName: userName, avatarUrl: avatarUrl),
+                leading: IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    wrapperScaffoldKey.currentState?.openDrawer();
+                  },
                 ),
                 pinned: true,
                 actions: [

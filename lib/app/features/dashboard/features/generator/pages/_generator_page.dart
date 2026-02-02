@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
+import 'package:shieldx/app/core/services/password_generator_service.dart';
 
 class PasswordGeneratorPage extends StatefulWidget {
   const PasswordGeneratorPage({super.key});
@@ -9,18 +12,50 @@ class PasswordGeneratorPage extends StatefulWidget {
 }
 
 class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
-  String _generatedPassword = 'GeneratePassword123!';
+  String _generatedPassword = '';
   double _passwordLength = 16;
   bool _includeUppercase = true;
   bool _includeLowercase = true;
   bool _includeNumbers = true;
   bool _includeSymbols = true;
+  bool _memorableMode = false;
+  int _passwordStrength = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _generatePassword();
+  }
+
+  void _generatePassword() {
+    setState(() {
+      if (_memorableMode) {
+        _generatedPassword = PasswordGeneratorService.generateMemorablePassword(
+          wordCount: 3,
+          includeNumbers: _includeNumbers,
+          includeSymbols: _includeSymbols,
+        );
+      } else {
+        _generatedPassword = PasswordGeneratorService.generatePassword(
+          length: _passwordLength.round(),
+          includeUppercase: _includeUppercase,
+          includeLowercase: _includeLowercase,
+          includeNumbers: _includeNumbers,
+          includeSymbols: _includeSymbols,
+        );
+      }
+      _passwordStrength = PasswordGeneratorService.calculatePasswordStrength(_generatedPassword);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final strengthColor = _getStrengthColor(_passwordStrength);
+    final strengthLabel = PasswordGeneratorService.getPasswordStrengthLabel(_passwordStrength);
 
     return Scaffold(
+      backgroundColor: CupertinoColors.systemGroupedBackground,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -28,11 +63,17 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               sliver: SliverAppBar(
-                backgroundColor: theme.colorScheme.surface,
+                backgroundColor: CupertinoColors.systemGroupedBackground,
+                leading: IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    wrapperScaffoldKey.currentState?.openDrawer();
+                  },
+                ),
                 title: Text(
                   'Password Generator',
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 pinned: true,
@@ -41,51 +82,140 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
             // Generated password display
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 child: Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
-                      Text(
-                        _generatedPassword,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
+                      SelectableText(
+                        _generatedPassword.isEmpty ? 'Tap generate' : _generatedPassword,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
                           fontFamily: 'monospace',
+                          letterSpacing: 1,
                         ),
                         textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: 16),
+                      // Strength indicator
+                      Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: strengthColor,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                strengthLabel,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: strengthColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '($_passwordStrength%)',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: _passwordStrength / 100,
+                              backgroundColor: Colors.grey.shade200,
+                              valueColor: AlwaysStoppedAnimation(strengthColor),
+                              minHeight: 6,
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 20),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          FilledButton.icon(
-                            onPressed: () {
-                              Clipboard.setData(
-                                ClipboardData(text: _generatedPassword),
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Password copied!'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.copy),
-                            label: const Text('Copy'),
+                          Expanded(
+                            child: CupertinoButton(
+                              onPressed: () {
+                                if (_generatedPassword.isNotEmpty) {
+                                  Clipboard.setData(
+                                    ClipboardData(text: _generatedPassword),
+                                  );
+                                  HapticFeedback.mediumImpact();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Password copied!'),
+                                      duration: Duration(seconds: 2),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              },
+                              color: theme.colorScheme.secondaryContainer,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.doc_on_clipboard,
+                                    color: theme.colorScheme.onSecondaryContainer,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Copy',
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onSecondaryContainer,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          FilledButton.icon(
-                            onPressed: () {
-                              // Generate new password logic here
-                              setState(() {
-                                _generatedPassword = 'NewPassword456!';
-                              });
-                            },
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Generate'),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: CupertinoButton(
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                _generatePassword();
+                              },
+                              color: theme.colorScheme.primary,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              borderRadius: BorderRadius.circular(12),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(CupertinoIcons.refresh, size: 20),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Generate',
+                                    style: TextStyle(fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -94,140 +224,178 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
                 ),
               ),
             ),
-            // Password length slider
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Password Length',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+            // Mode selector
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: CupertinoSlidingSegmentedControl<bool>(
+                    groupValue: _memorableMode,
+                    onValueChanged: (value) {
+                      setState(() {
+                        _memorableMode = value ?? false;
+                      });
+                      _generatePassword();
+                    },
+                    children: const {
+                      false: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Text('Random'),
                       ),
+                      true: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Text('Memorable'),
+                      ),
+                    },
+                  ),
+                ),
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            // Options
+            if (!_memorableMode) ...[
+              // Password length slider
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(height: 10),
-                    Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Slider(
-                            value: _passwordLength,
-                            min: 8,
-                            max: 32,
-                            divisions: 24,
-                            label: _passwordLength.round().toString(),
-                            onChanged: (value) {
-                              setState(() {
-                                _passwordLength = value;
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${_passwordLength.round()}',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onPrimaryContainer,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Length',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${_passwordLength.round()}',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        CupertinoSlider(
+                          value: _passwordLength,
+                          min: 8,
+                          max: 32,
+                          divisions: 24,
+                          onChanged: (value) {
+                            setState(() {
+                              _passwordLength = value;
+                            });
+                          },
+                          onChangeEnd: (_) => _generatePassword(),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            ],
             // Character types
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Character Types',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    children: [
+                      if (!_memorableMode) ...[
+                        _buildIOSToggle(
+                          context,
+                          title: 'Uppercase (A-Z)',
+                          value: _includeUppercase,
+                          onChanged: (value) {
+                            setState(() {
+                              _includeUppercase = value;
+                            });
+                            _generatePassword();
+                          },
+                        ),
+                        _buildDivider(),
+                        _buildIOSToggle(
+                          context,
+                          title: 'Lowercase (a-z)',
+                          value: _includeLowercase,
+                          onChanged: (value) {
+                            setState(() {
+                              _includeLowercase = value;
+                            });
+                            _generatePassword();
+                          },
+                        ),
+                        _buildDivider(),
+                      ],
+                      _buildIOSToggle(
+                        context,
+                        title: 'Numbers (0-9)',
+                        value: _includeNumbers,
+                        onChanged: (value) {
+                          setState(() {
+                            _includeNumbers = value;
+                          });
+                          _generatePassword();
+                        },
                       ),
-                    ),
-                    const SizedBox(height: 15),
-                  ],
+                      _buildDivider(),
+                      _buildIOSToggle(
+                        context,
+                        title: 'Symbols (!@#\$)',
+                        value: _includeSymbols,
+                        onChanged: (value) {
+                          setState(() {
+                            _includeSymbols = value;
+                          });
+                          _generatePassword();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            // Character type toggles
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildOptionTile(
-                    context,
-                    title: 'Uppercase (A-Z)',
-                    value: _includeUppercase,
-                    onChanged: (value) {
-                      setState(() {
-                        _includeUppercase = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _buildOptionTile(
-                    context,
-                    title: 'Lowercase (a-z)',
-                    value: _includeLowercase,
-                    onChanged: (value) {
-                      setState(() {
-                        _includeLowercase = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _buildOptionTile(
-                    context,
-                    title: 'Numbers (0-9)',
-                    value: _includeNumbers,
-                    onChanged: (value) {
-                      setState(() {
-                        _includeNumbers = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _buildOptionTile(
-                    context,
-                    title: 'Symbols (!@#\$%)',
-                    value: _includeSymbols,
-                    onChanged: (value) {
-                      setState(() {
-                        _includeSymbols = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 30),
-                ]),
-              ),
-            ),
-            // Password strength tips
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverToBoxAdapter(
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            // Tips
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+                    color: Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.blue.shade100),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,23 +403,43 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
                       Row(
                         children: [
                           Icon(
-                            Icons.lightbulb_outline,
-                            color: theme.colorScheme.primary,
+                            CupertinoIcons.lightbulb,
+                            color: Colors.blue.shade700,
+                            size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Password Tips',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                            'Security Tips',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blue.shade900,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _buildTipItem(context, 'Use at least 12 characters'),
-                      _buildTipItem(context, 'Mix uppercase and lowercase'),
-                      _buildTipItem(context, 'Include numbers and symbols'),
-                      _buildTipItem(context, 'Avoid common words'),
+                      ..._getTips().map((tip) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.checkmark_circle_fill,
+                                  size: 16,
+                                  color: Colors.blue.shade700,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    tip,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: Colors.blue.shade900,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
                     ],
                   ),
                 ),
@@ -264,53 +452,63 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
     );
   }
 
-  Widget _buildOptionTile(
+  Widget _buildIOSToggle(
     BuildContext context, {
     required String title,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: SwitchListTile(
-        title: Text(
-          title,
-          style: theme.textTheme.bodyLarge,
-        ),
-        value: value,
-        onChanged: onChanged,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTipItem(BuildContext context, String text) {
-    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(
-            Icons.check_circle,
-            size: 16,
-            color: theme.colorScheme.primary,
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: theme.textTheme.bodyMedium,
-            ),
+          CupertinoSwitch(
+            value: value,
+            onChanged: onChanged,
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: Colors.grey.shade200,
+      ),
+    );
+  }
+
+  List<String> _getTips() {
+    if (_memorableMode) {
+      return [
+        'Memorable passwords are easier to remember',
+        'Use 3-4 words for better security',
+        'Still maintain uniqueness across accounts',
+      ];
+    } else {
+      return [
+        'Use at least 12-16 characters',
+        'Mix all character types for strength',
+        'Never reuse passwords',
+        'Store passwords securely',
+      ];
+    }
+  }
+
+  Color _getStrengthColor(int strength) {
+    if (strength >= 80) return Colors.green;
+    if (strength >= 60) return Colors.lightGreen;
+    if (strength >= 40) return Colors.orange;
+    if (strength >= 20) return Colors.deepOrange;
+    return Colors.red;
   }
 }

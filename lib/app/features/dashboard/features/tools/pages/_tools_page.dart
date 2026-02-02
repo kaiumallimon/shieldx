@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 
 class ToolsPage extends StatelessWidget {
   const ToolsPage({super.key});
@@ -16,6 +17,12 @@ class ToolsPage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               sliver: SliverAppBar(
                 backgroundColor: theme.colorScheme.surface,
+                leading: IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    wrapperScaffoldKey.currentState?.openDrawer();
+                  },
+                ),
                 title: Text(
                   'Security Tools',
                   style: theme.textTheme.headlineSmall?.copyWith(
