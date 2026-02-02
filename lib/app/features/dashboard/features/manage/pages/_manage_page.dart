@@ -52,7 +52,7 @@ class ManagePage extends StatelessWidget {
 
         final windowSize = MediaQuery.of(context).size;
 
-        final appBarHeight = windowSize.height * 0.07;
+        final appBarHeight = windowSize.height * 0.067;
 
         return Scaffold(
           body: SafeArea(
@@ -60,7 +60,7 @@ class ManagePage extends StatelessWidget {
               children: [
                 // Scrollable content with top padding
                 Padding(
-                  padding: EdgeInsets.only(top: appBarHeight),
+                  padding: EdgeInsets.only(top: appBarHeight+10),
                   child: CustomScrollView(
                     physics: const BouncingScrollPhysics(),
                     slivers: [
@@ -328,15 +328,18 @@ class ManagePage extends StatelessWidget {
                   right: 0,
                   child: IgnorePointer(
                     child: Container(
-                      height: 25,
+                      height: 40,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
                             theme.colorScheme.surface,
+                            theme.colorScheme.surface.withAlpha(200),
+                            theme.colorScheme.surface.withAlpha(100),
                             theme.colorScheme.surface.withAlpha(0),
                           ],
+                          stops: const [0.0, 0.3, 0.6, 1.0],
                         ),
                       ),
                     ),
