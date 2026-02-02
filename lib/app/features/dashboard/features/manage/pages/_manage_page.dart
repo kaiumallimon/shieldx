@@ -70,7 +70,7 @@ class ManagePage extends StatelessWidget {
                   slivers: [
                     // Top spacing for appbar
                     SliverToBoxAdapter(
-                      child: SizedBox(height: appBarHeight + MediaQuery.of(context).padding.top + 10),
+                      child: SizedBox(height: appBarHeight + MediaQuery.of(context).padding.top + 30),
                     ),
                     // All passwords card
                     SliverToBoxAdapter(
