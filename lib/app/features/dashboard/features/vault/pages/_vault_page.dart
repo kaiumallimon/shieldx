@@ -245,16 +245,21 @@ class _VaultPageState extends State<VaultPage> {
             ),
             // ScrollableAppBar
             ScrollableAppBar(
-              title: 'Vault',
+              // title: 'Vault',
               scrollController: _scrollController,
               leading: CircularActionButton(
+                scrollController: _scrollController,
                 icon: Icons.menu,
                 onTap: () {
                   wrapperScaffoldKey.currentState?.openDrawer();
                 },
               ),
-              trailing: VaultAddButton(
-                onPressed: () async {
+              trailing: CircularActionButton(
+                backgroundColor: theme.colorScheme.primary,
+                iconColor: theme.colorScheme.onPrimary,
+                scrollController: _scrollController,
+                icon: CupertinoIcons.add,
+                onTap: () async {
                   final result = await showVaultAddEditDialog(context);
                   if (result == true && mounted) {
                     // Password added successfully - reload data

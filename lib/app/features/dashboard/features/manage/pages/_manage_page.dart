@@ -284,12 +284,14 @@ class _ManagePageState extends State<ManagePage> {
                   title: 'Manage Vault',
                   scrollController: _scrollController,
                   leading: CircularActionButton(
+                    scrollController: _scrollController,
                     icon: Icons.menu,
                     onTap: () {
                       wrapperScaffoldKey.currentState?.openDrawer();
                     },
                   ),
                   trailing: CircularActionButton(
+                    scrollController: _scrollController,
                     icon: CupertinoIcons.refresh,
                     onTap: () => context.read<ManageCubit>().loadData(),
                     margin: const EdgeInsets.only(right: 8),

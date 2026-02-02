@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ScrollableAppBar extends StatefulWidget {
-  final String title;
+  final String? title;
   final Widget? leading;
   final Widget? trailing;
   final ScrollController scrollController;
@@ -9,7 +9,7 @@ class ScrollableAppBar extends StatefulWidget {
 
   const ScrollableAppBar({
     super.key,
-    required this.title,
+    this.title,
     this.leading,
     this.trailing,
     required this.scrollController,
@@ -68,7 +68,8 @@ class _ScrollableAppBarState extends State<ScrollableAppBar> {
                 duration: const Duration(milliseconds: 200),
                 child: ClipRect(
                   child: Container(
-                    height: appBarHeight + MediaQuery.of(context).padding.top + 100,
+                    height:
+                        appBarHeight + MediaQuery.of(context).padding.top + 100,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
@@ -85,7 +86,18 @@ class _ScrollableAppBarState extends State<ScrollableAppBar> {
                           theme.colorScheme.surface.withAlpha(20),
                           theme.colorScheme.surface.withAlpha(0),
                         ],
-                        stops: const [0.0, 0.35, 0.5, 0.6, 0.68, 0.75, 0.82, 0.9, 0.96, 1.0],
+                        stops: const [
+                          0.0,
+                          0.35,
+                          0.5,
+                          0.6,
+                          0.68,
+                          0.75,
+                          0.82,
+                          0.9,
+                          0.96,
+                          1.0,
+                        ],
                       ),
                     ),
                   ),
@@ -102,17 +114,21 @@ class _ScrollableAppBarState extends State<ScrollableAppBar> {
             height: appBarHeight,
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(
+              mainAxisAlignment: widget.title == null
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.start,
               spacing: 8,
               children: [
                 if (widget.leading != null) widget.leading!,
-                Expanded(
-                  child: Text(
-                    widget.title,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                if (widget.title != null)
+                  Expanded(
+                    child: Text(
+                      widget.title!,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
                 if (widget.trailing != null) widget.trailing!,
               ],
             ),
