@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
+import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_button.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_category_bottom_sheet.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_avatar.dart';
@@ -100,7 +101,7 @@ class _VaultPageState extends State<VaultPage> {
             SliverToBoxAdapter(
               child: VaultCategoriesSection(
                 categories: _categories,
-                onAddCategory: () => showAddCategoryBottomSheet(context),
+                onAddCategory: () => showAddCategoryBottomSheet(wrapperScaffoldKey.currentState!.context),
                 onCategoryTap: (category) {
                   // category tap
                 },
