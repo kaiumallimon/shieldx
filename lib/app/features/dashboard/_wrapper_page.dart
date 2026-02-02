@@ -20,13 +20,13 @@ class _WrapperPageState extends State<WrapperPage> {
       case '/home':
         return 0;
       case '/security':
-        return 1;
+        return 3;
       case '/generator':
         return 2;
       case '/tools':
-        return 3;
-      case '/manage':
         return 4;
+      case '/manage':
+        return 1;
       default:
         return 0;
     }
@@ -38,16 +38,16 @@ class _WrapperPageState extends State<WrapperPage> {
         context.go('/home');
         break;
       case 1:
-        context.go('/security');
+        context.go('/manage');
         break;
       case 2:
         context.go('/generator');
         break;
       case 3:
-        context.go('/tools');
+        context.go('/security');
         break;
       case 4:
-        context.go('/manage');
+        context.go('/tools');
         break;
     }
   }
@@ -93,24 +93,25 @@ class _WrapperPageState extends State<WrapperPage> {
               label: 'Vault',
             ),
             NavigationDestination(
-              icon: Icon(Icons.shield_outlined),
-              selectedIcon: Icon(Icons.shield),
-              label: 'Security',
+              icon: Icon(Icons.category_outlined),
+              selectedIcon: Icon(Icons.category),
+              label: 'Manage',
             ),
+
             NavigationDestination(
               icon: Icon(Icons.vpn_key_outlined),
               selectedIcon: Icon(Icons.vpn_key),
               label: 'Generator',
             ),
             NavigationDestination(
+              icon: Icon(Icons.shield_outlined),
+              selectedIcon: Icon(Icons.shield),
+              label: 'Security',
+            ),
+            NavigationDestination(
               icon: Icon(Icons.build_outlined),
               selectedIcon: Icon(Icons.build),
               label: 'Tools',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.category_outlined),
-              selectedIcon: Icon(Icons.category),
-              label: 'Manage',
             ),
           ],
         ),
