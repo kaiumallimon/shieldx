@@ -1,94 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
-import 'package:shieldx/app/data/services/supabase_vault_service.dart';
+import 'package:shieldx/app/features/dashboard/features/security/cubit/_security_cubit.dart';
+import 'package:shieldx/app/features/dashboard/features/security/cubit/_security_state.dart';
 
-class SecurityPage extends StatefulWidget {
+class SecurityPage extends StatelessWidget {
   const SecurityPage({super.key});
 
-  @override
-  State<SecurityPage> createState() => _SecurityPageState();
-}
-
-class _SecurityPageState extends State<SecurityPage> {
-  final _vaultService = SupabaseVaultService();
-
-  bool _isLoading = true;
-  int _totalPasswords = 0;
-  int _weakPasswords = 0;
-  int _reusedPasswords = 0;
-  int _breachedPasswords = 0;
-  int _strongPasswords = 0;
-  int _securityScore = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSecurityData();
-  }
-
-  Future<void> _loadSecurityData() async {
-    try {
-      setState(() {
-        _isLoading = true;
-      });
-
-      final stats = await _vaultService.getPasswordHealthStats();
-      final total = await _vaultService.getTotalItemsCount();
-
-      setState(() {
-        _totalPasswords = total;
-        _strongPasswords = stats['strong'] ?? 0;
-        _weakPasswords = stats['weak'] ?? 0;
-        _reusedPasswords = stats['reused'] ?? 0;
-        _breachedPasswords = stats['breached'] ?? 0;
-
-        // Calculate security score
-        if (_totalPasswords > 0) {
-          final strongPercent = (_strongPasswords / _totalPasswords) * 100;
-          final weakPercent = (_weakPasswords / _totalPasswords) * 100;
-          final reusedPercent = (_reusedPasswords / _totalPasswords) * 100;
-          final breachedPercent = (_breachedPasswords / _totalPasswords) * 100;
-
-          _securityScore = (strongPercent -
-                           (weakPercent * 0.5) -
-                           (reusedPercent * 0.8) -
-                           (breachedPercent * 1.5))
-              .clamp(0, 100)
-              .round();
-        }
-
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CupertinoActivityIndicator()),
-      );
-    }
+    return BlocBuilder<SecurityCubit, SecurityState>(
+      builder: (context, state) {
+        if (state is SecurityInitial) {
+          context.read<SecurityCubit>().loadSecurityData();
+          return const Scaffold(
+            body: Center(child: CupertinoActivityIndicator()),
+          );
+        }
 
-    final scoreColor = _getScoreColor(_securityScore);
-    final scoreLabel = _getScoreLabel(_securityScore);
+        if (state is SecurityLoading) {
+          return const Scaffold(
+            body: Center(child: CupertinoActivityIndicator()),
+          );
+        }
 
-    return Scaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
-      body: SafeArea(
+        if (state is SecurityError) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48),
+                  const SizedBox(height: 16),
+                  Text(state.message),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => context.read<SecurityCubit>().loadSecurityData(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final loaded = state as SecurityLoaded;
+        final scoreColor = _getScoreColor(loaded.securityScore, theme);
+        final scoreLabel = _getScoreLabel(loaded.securityScore);
+
+        return Scaffold(
+          backgroundColor: theme.colorScheme.surface,
+          body: SafeArea(
         child: CustomScrollView(
           slivers: [
             // App bar
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               sliver: SliverAppBar(
-                backgroundColor: CupertinoColors.systemGroupedBackground,
+                backgroundColor: theme.colorScheme.surface,
                 leading: IconButton(
                   icon: const Icon(Icons.menu),
                   onPressed: () {
@@ -104,7 +76,7 @@ class _SecurityPageState extends State<SecurityPage> {
                 actions: [
                   IconButton(
                     icon: const Icon(CupertinoIcons.refresh),
-                    onPressed: _loadSecurityData,
+                    onPressed: () => context.read<SecurityCubit>().loadSecurityData(),
                   ),
                 ],
                 pinned: true,
@@ -139,15 +111,15 @@ class _SecurityPageState extends State<SecurityPage> {
                       Text(
                         'Security Score',
                         style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
+                          color: theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        '$_securityScore',
+                        '${loaded.securityScore}',
                         style: theme.textTheme.displayLarge?.copyWith(
-                          color: Colors.white,
+                          color: theme.colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 72,
                         ),
@@ -155,15 +127,15 @@ class _SecurityPageState extends State<SecurityPage> {
                       Text(
                         scoreLabel,
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: theme.colorScheme.onPrimary.withOpacity(0.9),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        '$_totalPasswords passwords analyzed',
+                        '${loaded.totalPasswords} passwords analyzed',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.8),
+                          color: theme.colorScheme.onPrimary.withOpacity(0.8),
                         ),
                       ),
                     ],
@@ -180,20 +152,20 @@ class _SecurityPageState extends State<SecurityPage> {
                     Expanded(
                       child: _buildStatCard(
                         context,
+                        theme,
                         icon: CupertinoIcons.checkmark_shield,
                         label: 'Strong',
-                        count: _strongPasswords,
-                        color: Colors.green,
+                        count: loaded.strongPasswords,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildStatCard(
                         context,
+                        theme,
                         icon: CupertinoIcons.exclamationmark_triangle,
                         label: 'Weak',
-                        count: _weakPasswords,
-                        color: Colors.orange,
+                        count: loaded.weakPasswords,
                       ),
                     ),
                   ],
@@ -209,20 +181,20 @@ class _SecurityPageState extends State<SecurityPage> {
                     Expanded(
                       child: _buildStatCard(
                         context,
+                        theme,
                         icon: CupertinoIcons.arrow_2_squarepath,
                         label: 'Reused',
-                        count: _reusedPasswords,
-                        color: Colors.red,
+                        count: loaded.reusedPasswords,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildStatCard(
                         context,
+                        theme,
                         icon: CupertinoIcons.xmark_shield,
                         label: 'Breached',
-                        count: _breachedPasswords,
-                        color: Colors.purple,
+                        count: loaded.breachedPasswords,
                       ),
                     ),
                   ],
@@ -231,7 +203,7 @@ class _SecurityPageState extends State<SecurityPage> {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
             // Security alerts
-            if (_weakPasswords > 0 || _reusedPasswords > 0 || _breachedPasswords > 0) ...[
+            if (loaded.weakPasswords > 0 || loaded.reusedPasswords > 0 || loaded.breachedPasswords > 0) ...[
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 sliver: SliverToBoxAdapter(
@@ -249,41 +221,41 @@ class _SecurityPageState extends State<SecurityPage> {
                 sliver: SliverToBoxAdapter(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
                       children: [
-                        if (_weakPasswords > 0) ...[
+                        if (loaded.weakPasswords > 0) ...[
                           _buildAlertTile(
                             context,
+                            theme,
                             icon: CupertinoIcons.exclamationmark_triangle_fill,
                             title: 'Weak Passwords',
-                            subtitle: '$_weakPasswords passwords need strengthening',
-                            color: Colors.orange,
+                            subtitle: '${loaded.weakPasswords} passwords need strengthening',
                             onTap: () {},
                           ),
-                          if (_reusedPasswords > 0 || _breachedPasswords > 0)
+                          if (loaded.reusedPasswords > 0 || loaded.breachedPasswords > 0)
                             _buildDivider(),
                         ],
-                        if (_reusedPasswords > 0) ...[
+                        if (loaded.reusedPasswords > 0) ...[
                           _buildAlertTile(
                             context,
+                            theme,
                             icon: CupertinoIcons.arrow_2_squarepath,
                             title: 'Reused Passwords',
-                            subtitle: '$_reusedPasswords passwords are reused',
-                            color: Colors.red,
+                            subtitle: '${loaded.reusedPasswords} passwords are reused',
                             onTap: () {},
                           ),
-                          if (_breachedPasswords > 0) _buildDivider(),
+                          if (loaded.breachedPasswords > 0) _buildDivider(),
                         ],
-                        if (_breachedPasswords > 0)
+                        if (loaded.breachedPasswords > 0)
                           _buildAlertTile(
                             context,
+                            theme,
                             icon: CupertinoIcons.xmark_shield_fill,
                             title: 'Breached Passwords',
-                            subtitle: '$_breachedPasswords passwords compromised',
-                            color: Colors.purple,
+                            subtitle: '${loaded.breachedPasswords} passwords compromised',
                             onTap: () {},
                           ),
                       ],
@@ -318,30 +290,30 @@ class _SecurityPageState extends State<SecurityPage> {
                 delegate: SliverChildListDelegate([
                   _buildActionCard(
                     context,
+                    theme,
                     icon: CupertinoIcons.arrow_clockwise_circle,
                     title: 'Update All Weak',
-                    color: Colors.orange,
                     onTap: () {},
                   ),
                   _buildActionCard(
                     context,
+                    theme,
                     icon: CupertinoIcons.search_circle,
                     title: 'Check Breaches',
-                    color: Colors.blue,
                     onTap: () {},
                   ),
                   _buildActionCard(
                     context,
+                    theme,
                     icon: CupertinoIcons.chart_bar_circle,
                     title: 'View Report',
-                    color: Colors.green,
                     onTap: () {},
                   ),
                   _buildActionCard(
                     context,
+                    theme,
                     icon: CupertinoIcons.arrow_down_circle,
                     title: 'Export Data',
-                    color: Colors.purple,
                     onTap: () {},
                   ),
                 ]),
@@ -352,20 +324,22 @@ class _SecurityPageState extends State<SecurityPage> {
         ),
       ),
     );
+      },
+    );
   }
 
   Widget _buildStatCard(
-    BuildContext context, {
+    BuildContext context,
+    ThemeData theme, {
     required IconData icon,
     required String label,
     required int count,
-    required Color color,
   }) {
-    final theme = Theme.of(context);
+    final Color color = _getStatColor(label, theme);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.2), width: 2),
       ),
@@ -384,7 +358,7 @@ class _SecurityPageState extends State<SecurityPage> {
           Text(
             label,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade600,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -393,14 +367,14 @@ class _SecurityPageState extends State<SecurityPage> {
   }
 
   Widget _buildAlertTile(
-    BuildContext context, {
+    BuildContext context,
+    ThemeData theme, {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color color,
     required VoidCallback onTap,
   }) {
-    final theme = Theme.of(context);
+    final Color color = _getAlertColor(title, theme);
     return CupertinoListTile(
       onTap: onTap,
       leading: Container(
@@ -423,20 +397,20 @@ class _SecurityPageState extends State<SecurityPage> {
   }
 
   Widget _buildActionCard(
-    BuildContext context, {
+    BuildContext context,
+    ThemeData theme, {
     required IconData icon,
     required String title,
-    required Color color,
     required VoidCallback onTap,
   }) {
-    final theme = Theme.of(context);
+    final Color color = _getActionColor(title, theme);
     return CupertinoButton(
       onPressed: onTap,
       padding: EdgeInsets.zero,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: color.withOpacity(0.2), width: 2),
         ),
@@ -449,7 +423,7 @@ class _SecurityPageState extends State<SecurityPage> {
               title,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade800,
+                color: theme.colorScheme.onSurface,
               ),
               textAlign: TextAlign.center,
             ),
@@ -460,22 +434,51 @@ class _SecurityPageState extends State<SecurityPage> {
   }
 
   Widget _buildDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
       child: Divider(
         height: 1,
         thickness: 1,
-        color: Colors.grey.shade200,
       ),
     );
   }
 
-  Color _getScoreColor(int score) {
-    if (score >= 80) return Colors.green;
-    if (score >= 60) return Colors.lightGreen;
-    if (score >= 40) return Colors.orange;
-    if (score >= 20) return Colors.deepOrange;
-    return Colors.red;
+  Color _getScoreColor(int score, ThemeData theme) {
+    if (score >= 80) return theme.colorScheme.primary;
+    if (score >= 60) return theme.colorScheme.secondary;
+    if (score >= 40) return theme.colorScheme.tertiary;
+    if (score >= 20) return theme.colorScheme.error;
+    return theme.colorScheme.error;
+  }
+
+  Color _getStatColor(String label, ThemeData theme) {
+    switch (label) {
+      case 'Strong':
+        return theme.colorScheme.primary;
+      case 'Weak':
+        return theme.colorScheme.tertiary;
+      case 'Reused':
+        return theme.colorScheme.error;
+      case 'Breached':
+        return theme.colorScheme.errorContainer;
+      default:
+        return theme.colorScheme.primary;
+    }
+  }
+
+  Color _getAlertColor(String title, ThemeData theme) {
+    if (title.contains('Weak')) return theme.colorScheme.tertiary;
+    if (title.contains('Reused')) return theme.colorScheme.error;
+    if (title.contains('Breached')) return theme.colorScheme.errorContainer;
+    return theme.colorScheme.primary;
+  }
+
+  Color _getActionColor(String title, ThemeData theme) {
+    if (title.contains('Update')) return theme.colorScheme.tertiary;
+    if (title.contains('Check')) return theme.colorScheme.primary;
+    if (title.contains('View')) return theme.colorScheme.secondary;
+    if (title.contains('Export')) return theme.colorScheme.primaryContainer;
+    return theme.colorScheme.primary;
   }
 
   String _getScoreLabel(int score) {

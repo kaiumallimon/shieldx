@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
+import 'package:shieldx/app/features/dashboard/features/manage/cubit/_manage_cubit.dart';
+import 'package:shieldx/app/features/dashboard/features/manage/cubit/_manage_state.dart';
 
 class ManagePage extends StatelessWidget {
   const ManagePage({super.key});
@@ -9,46 +12,89 @@ class ManagePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // App bar
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              sliver: SliverAppBar(
-                backgroundColor: theme.colorScheme.surface,
-                leading: IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () {
-                    wrapperScaffoldKey.currentState?.openDrawer();
-                  },
-                ),
-                title: Text(
-                  'Manage Vault',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+    return BlocBuilder<ManageCubit, ManageState>(
+      builder: (context, state) {
+        if (state is ManageInitial) {
+          context.read<ManageCubit>().loadData();
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state is ManageLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state is ManageError) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48),
+                  const SizedBox(height: 16),
+                  Text(state.message),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => context.read<ManageCubit>().loadData(),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final loaded = state as ManageLoaded;
+
+        return Scaffold(
+          body: SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                // App bar
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  sliver: SliverAppBar(
+                    backgroundColor: theme.colorScheme.surface,
+                    leading: IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () {
+                        wrapperScaffoldKey.currentState?.openDrawer();
+                      },
+                    ),
+                    title: Text(
+                      'Manage Vault',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: () => context.read<ManageCubit>().loadData(),
+                      ),
+                    ],
+                    pinned: true,
                   ),
                 ),
-                pinned: true,
-              ),
-            ),
-            // All passwords card
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: _buildMainCard(
-                  context,
-                  icon: Icons.lock_outlined,
-                  title: 'All Passwords',
-                  subtitle: 'View and manage all your passwords',
-                  color: theme.colorScheme.primary,
-                  onTap: () {
-                    context.push('/manage/all-passwords');
-                  },
+                // All passwords card
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: _buildMainCard(
+                      context,
+                      icon: Icons.lock_outlined,
+                      title: 'All Passwords',
+                      subtitle: '${loaded.totalPasswords} passwords in your vault',
+                      color: theme.colorScheme.primary,
+                      onTap: () {
+                        context.push('/manage/all-passwords');
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ),
             // Categories section
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -82,8 +128,8 @@ class ManagePage extends StatelessWidget {
                     context,
                     icon: Icons.work_outline,
                     title: 'Work',
-                    count: 12,
-                    color: Colors.blue,
+                    count: loaded.categoryCounts['work'] ?? 0,
+                    color: theme.colorScheme.primary,
                     onTap: () {
                       context.push('/manage/category/work');
                     },
@@ -92,8 +138,8 @@ class ManagePage extends StatelessWidget {
                     context,
                     icon: Icons.person_outline,
                     title: 'Personal',
-                    count: 25,
-                    color: Colors.green,
+                    count: loaded.categoryCounts['personal'] ?? 0,
+                    color: theme.colorScheme.secondary,
                     onTap: () {
                       context.push('/manage/category/personal');
                     },
@@ -102,8 +148,8 @@ class ManagePage extends StatelessWidget {
                     context,
                     icon: Icons.public,
                     title: 'Social',
-                    count: 8,
-                    color: Colors.purple,
+                    count: loaded.categoryCounts['social'] ?? 0,
+                    color: theme.colorScheme.tertiary,
                     onTap: () {
                       context.push('/manage/category/social');
                     },
@@ -112,8 +158,8 @@ class ManagePage extends StatelessWidget {
                     context,
                     icon: Icons.account_balance,
                     title: 'Finance',
-                    count: 6,
-                    color: Colors.orange,
+                    count: loaded.categoryCounts['finance'] ?? 0,
+                    color: theme.colorScheme.error,
                     onTap: () {
                       context.push('/manage/category/finance');
                     },
@@ -122,8 +168,8 @@ class ManagePage extends StatelessWidget {
                     context,
                     icon: Icons.shopping_bag_outlined,
                     title: 'Shopping',
-                    count: 10,
-                    color: Colors.red,
+                    count: loaded.categoryCounts['shopping'] ?? 0,
+                    color: theme.colorScheme.primaryContainer,
                     onTap: () {
                       context.push('/manage/category/shopping');
                     },
@@ -169,7 +215,7 @@ class ManagePage extends StatelessWidget {
                     context,
                     icon: Icons.login,
                     title: 'Login Credentials',
-                    count: 45,
+                    count: loaded.typeCounts['login'] ?? 0,
                     onTap: () {
                       context.push('/manage/type/login');
                     },
@@ -179,7 +225,7 @@ class ManagePage extends StatelessWidget {
                     context,
                     icon: Icons.key,
                     title: 'API Keys',
-                    count: 8,
+                    count: loaded.typeCounts['api-key'] ?? 0,
                     onTap: () {
                       context.push('/manage/type/api-key');
                     },
@@ -189,7 +235,7 @@ class ManagePage extends StatelessWidget {
                     context,
                     icon: Icons.credit_card,
                     title: 'Credit Cards',
-                    count: 3,
+                    count: loaded.typeCounts['credit-card'] ?? 0,
                     onTap: () {
                       context.push('/manage/type/credit-card');
                     },
@@ -199,7 +245,7 @@ class ManagePage extends StatelessWidget {
                     context,
                     icon: Icons.note,
                     title: 'Secure Notes',
-                    count: 12,
+                    count: loaded.typeCounts['note'] ?? 0,
                     onTap: () {
                       context.push('/manage/type/note');
                     },
@@ -209,7 +255,7 @@ class ManagePage extends StatelessWidget {
                     context,
                     icon: Icons.badge,
                     title: 'Identity Documents',
-                    count: 5,
+                    count: loaded.typeCounts['identity'] ?? 0,
                     onTap: () {
                       context.push('/manage/type/identity');
                     },
@@ -218,9 +264,11 @@ class ManagePage extends StatelessWidget {
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
-          ],
-        ),
-      ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

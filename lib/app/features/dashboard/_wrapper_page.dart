@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'shared/widgets/app_drawer.dart';
@@ -70,50 +71,40 @@ class _WrapperPageState extends State<WrapperPage> {
       key: wrapperScaffoldKey,
       drawer: const AppDrawer(),
       body: widget.child,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: theme.colorScheme.onSurface.withAlpha(20),
-              width: 1,
-            ),
+      bottomNavigationBar: CupertinoTabBar(
+        currentIndex: selectedIndex,
+        onTap: _onItemTapped,
+        backgroundColor: theme.colorScheme.surface,
+        activeColor: theme.colorScheme.primary,
+        inactiveColor: theme.colorScheme.onSurfaceVariant,
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant,
+            width: 0.5,
           ),
         ),
-        child: NavigationBar(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: _onItemTapped,
-          backgroundColor: theme.colorScheme.surface,
-          indicatorColor: theme.colorScheme.primary,
-          shadowColor: Colors.transparent,
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard),
-              label: 'Vault',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.shield_outlined),
-              selectedIcon: Icon(Icons.shield),
-              label: 'Security',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.vpn_key_outlined),
-              selectedIcon: Icon(Icons.vpn_key),
-              label: 'Generator',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.build_outlined),
-              selectedIcon: Icon(Icons.build),
-              label: 'Tools',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.category_outlined),
-              selectedIcon: Icon(Icons.category),
-              label: 'Manage',
-            ),
-          ],
-        ),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.lock_shield),
+            label: 'Vault',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.shield),
+            label: 'Security',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.lock_rotation),
+            label: 'Generator',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.wrench),
+            label: 'Tools',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(CupertinoIcons.square_grid_2x2),
+            label: 'Manage',
+          ),
+        ],
       ),
     );
   }
