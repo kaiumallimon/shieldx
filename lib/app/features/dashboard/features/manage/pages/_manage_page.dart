@@ -65,13 +65,15 @@ class ManagePage extends StatelessWidget {
                   color: theme.colorScheme.surface,
                 ),
                 // Scrollable content with top padding
-                Padding(
-                  padding: EdgeInsets.only(top: appBarHeight + MediaQuery.of(context).padding.top),
-                  child: CustomScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    slivers: [
-                      // All passwords card
-                      SliverToBoxAdapter(
+                CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    // Top spacing for appbar
+                    SliverToBoxAdapter(
+                      child: SizedBox(height: appBarHeight + MediaQuery.of(context).padding.top),
+                    ),
+                    // All passwords card
+                    SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.all(20),
                           child: _buildMainCard(
@@ -258,7 +260,6 @@ class ManagePage extends StatelessWidget {
                       ),
                       const SliverToBoxAdapter(child: SizedBox(height: 20)),
                     ],
-                  ),
                 ),
                 // Fade background
                 Positioned(
