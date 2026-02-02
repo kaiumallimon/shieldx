@@ -54,8 +54,10 @@ class ManagePage extends StatelessWidget {
 
         return Scaffold(
           body: SafeArea(
-            child: CustomScrollView(
-              slivers: [
+            child: Stack(
+              children: [
+                CustomScrollView(
+                  slivers: [
                 // App bar
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -311,8 +313,31 @@ class ManagePage extends StatelessWidget {
                 const SliverToBoxAdapter(child: SizedBox(height: 20)),
               ],
             ),
-          ),
-        );
+            // Gradient fade overlay at the top
+            Positioned(
+              top: windowSize.height * 0.07,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: Container(
+                  height: 20,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        theme.colorScheme.surface,
+                        theme.colorScheme.surface.withOpacity(0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
       },
     );
   }
