@@ -124,7 +124,7 @@ class _ScrollableAppBarState extends State<ScrollableAppBar> {
                   Expanded(
                     child: Text(
                       widget.title!,
-                      style: theme.textTheme.headlineSmall?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
