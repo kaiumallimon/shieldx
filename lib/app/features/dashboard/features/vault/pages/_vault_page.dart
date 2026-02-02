@@ -134,6 +134,7 @@ class _VaultPageState extends State<VaultPage> {
                 ),
               ),
             ),
+
           ],
         ),
       ),
