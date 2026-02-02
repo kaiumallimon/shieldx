@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
@@ -58,11 +59,24 @@ class ManagePage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   sliver: SliverAppBar(
                     backgroundColor: theme.colorScheme.surface,
-                    leading: IconButton(
-                      icon: const Icon(Icons.menu),
-                      onPressed: () {
-                        wrapperScaffoldKey.currentState?.openDrawer();
-                      },
+                    surfaceTintColor: Colors.transparent,
+                    elevation: 0,
+                    leading: Container(
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          CupertinoIcons.line_horizontal_3,
+                          color: theme.colorScheme.onSecondaryContainer,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          wrapperScaffoldKey.currentState?.openDrawer();
+                        },
+                      ),
                     ),
                     title: Text(
                       'Manage Vault',
@@ -71,9 +85,20 @@ class ManagePage extends StatelessWidget {
                       ),
                     ),
                     actions: [
-                      IconButton(
-                        icon: const Icon(Icons.refresh),
-                        onPressed: () => context.read<ManageCubit>().loadData(),
+                      Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            CupertinoIcons.refresh,
+                            color: theme.colorScheme.onSecondaryContainer,
+                            size: 20,
+                          ),
+                          onPressed: () => context.read<ManageCubit>().loadData(),
+                        ),
                       ),
                     ],
                     pinned: true,

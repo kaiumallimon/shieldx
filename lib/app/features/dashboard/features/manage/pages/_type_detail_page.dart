@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 class TypeDetailPage extends StatefulWidget {
   final String type;
@@ -35,6 +36,8 @@ class _TypeDetailPageState extends State<TypeDetailPage> {
       appBar: AppBar(
         title: Text(typeName),
         backgroundColor: theme.colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -59,13 +62,13 @@ class _TypeDetailPageState extends State<TypeDetailPage> {
                 Icon(
                   _getTypeIcon(widget.type),
                   size: 48,
-                  color: Colors.white,
+                  color: theme.colorScheme.onPrimary,
                 ),
                 const SizedBox(height: 12),
                 Text(
                   typeName,
                   style: theme.textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
+                    color: theme.colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -73,7 +76,7 @@ class _TypeDetailPageState extends State<TypeDetailPage> {
                 Text(
                   '${_typePasswords.length} items',
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: Colors.white70,
+                    color: theme.colorScheme.onPrimary.withOpacity(0.8),
                   ),
                 ),
               ],

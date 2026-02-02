@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 
 class ToolsPage extends StatelessWidget {
@@ -17,11 +18,24 @@ class ToolsPage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               sliver: SliverAppBar(
                 backgroundColor: theme.colorScheme.surface,
-                leading: IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () {
-                    wrapperScaffoldKey.currentState?.openDrawer();
-                  },
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                leading: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      CupertinoIcons.line_horizontal_3,
+                      color: theme.colorScheme.onSecondaryContainer,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      wrapperScaffoldKey.currentState?.openDrawer();
+                    },
+                  ),
                 ),
                 title: Text(
                   'Security Tools',
@@ -45,66 +59,66 @@ class ToolsPage extends StatelessWidget {
                 delegate: SliverChildListDelegate([
                   _buildToolCard(
                     context,
-                    icon: Icons.verified_user,
+                    theme,
+                    icon: CupertinoIcons.checkmark_shield,
                     title: 'Password Strength Checker',
                     description: 'Analyze password security',
-                    gradient: [Colors.blue, Colors.blueAccent],
                     onTap: () {},
                   ),
                   _buildToolCard(
                     context,
-                    icon: Icons.search,
+                    theme,
+                    icon: CupertinoIcons.exclamationmark_triangle,
                     title: 'Data Breach Detector',
                     description: 'Check if data was compromised',
-                    gradient: [Colors.red, Colors.redAccent],
                     onTap: () {},
                   ),
                   _buildToolCard(
                     context,
-                    icon: Icons.security,
+                    theme,
+                    icon: CupertinoIcons.shield,
                     title: 'Security Audit',
                     description: 'Complete security scan',
-                    gradient: [Colors.green, Colors.greenAccent],
                     onTap: () {},
                   ),
                   _buildToolCard(
                     context,
-                    icon: Icons.vpn_key,
+                    theme,
+                    icon: CupertinoIcons.lock_rotation,
                     title: 'Passphrase Generator',
                     description: 'Create memorable phrases',
-                    gradient: [Colors.purple, Colors.purpleAccent],
                     onTap: () {},
                   ),
                   _buildToolCard(
                     context,
-                    icon: Icons.lock_clock,
+                    theme,
+                    icon: CupertinoIcons.clock,
                     title: 'Password Expiry',
                     description: 'Manage password age',
-                    gradient: [Colors.orange, Colors.orangeAccent],
                     onTap: () {},
                   ),
                   _buildToolCard(
                     context,
-                    icon: Icons.compare_arrows,
+                    theme,
+                    icon: CupertinoIcons.arrow_2_squarepath,
                     title: 'Duplicate Finder',
                     description: 'Find reused passwords',
-                    gradient: [Colors.teal, Colors.tealAccent],
                     onTap: () {},
                   ),
                   _buildToolCard(
                     context,
-                    icon: Icons.file_download,
+                    theme,
+                    icon: CupertinoIcons.arrow_down_doc,
                     title: 'Export Data',
                     description: 'Backup your vault',
-                    gradient: [Colors.indigo, Colors.indigoAccent],
                     onTap: () {},
                   ),
                   _buildToolCard(
                     context,
-                    icon: Icons.file_upload,
+                    theme,
+                    icon: CupertinoIcons.arrow_up_doc,
                     title: 'Import Data',
                     description: 'Restore from backup',
-                    gradient: [Colors.pink, Colors.pinkAccent],
                     onTap: () {},
                   ),
                 ]),
@@ -118,14 +132,13 @@ class ToolsPage extends StatelessWidget {
   }
 
   Widget _buildToolCard(
-    BuildContext context, {
+    BuildContext context,
+    ThemeData theme, {
     required IconData icon,
     required String title,
     required String description,
-    required List<Color> gradient,
     required VoidCallback onTap,
   }) {
-    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -134,8 +147,8 @@ class ToolsPage extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              gradient[0],
-              gradient[1],
+              theme.colorScheme.primary,
+              theme.colorScheme.secondary,
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -149,13 +162,13 @@ class ToolsPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: theme.colorScheme.onPrimary.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
                 size: 32,
-                color: Colors.white,
+                color: theme.colorScheme.onPrimary,
               ),
             ),
             Column(
@@ -165,14 +178,14 @@ class ToolsPage extends StatelessWidget {
                   title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: theme.colorScheme.onPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   description,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white70,
+                    color: theme.colorScheme.onPrimary.withOpacity(0.8),
                   ),
                 ),
               ],

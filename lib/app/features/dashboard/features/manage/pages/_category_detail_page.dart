@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 class CategoryDetailPage extends StatefulWidget {
   final String category;
@@ -35,6 +36,8 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
       appBar: AppBar(
         title: Text('$categoryName Category'),
         backgroundColor: theme.colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -59,13 +62,13 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                 Icon(
                   _getCategoryIcon(widget.category),
                   size: 48,
-                  color: Colors.white,
+                  color: theme.colorScheme.onPrimary,
                 ),
                 const SizedBox(height: 12),
                 Text(
                   categoryName,
                   style: theme.textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
+                    color: theme.colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -73,7 +76,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                 Text(
                   '${_categoryPasswords.length} passwords',
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: Colors.white70,
+                    color: theme.colorScheme.onPrimary.withOpacity(0.8),
                   ),
                 ),
               ],

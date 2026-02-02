@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_button.dart';
@@ -72,11 +73,24 @@ class _VaultPageState extends State<VaultPage> {
               padding: const EdgeInsets.symmetric(horizontal: 15),
               sliver: SliverAppBar(
                 backgroundColor: theme.colorScheme.surface,
-                leading: IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () {
-                    wrapperScaffoldKey.currentState?.openDrawer();
-                  },
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                leading: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      CupertinoIcons.line_horizontal_3,
+                      color: theme.colorScheme.onSecondaryContainer,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      wrapperScaffoldKey.currentState?.openDrawer();
+                    },
+                  ),
                 ),
                 pinned: true,
                 actions: [

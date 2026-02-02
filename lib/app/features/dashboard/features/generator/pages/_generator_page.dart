@@ -55,7 +55,7 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
     final strengthLabel = PasswordGeneratorService.getPasswordStrengthLabel(_passwordStrength);
 
     return Scaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
+      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
@@ -63,12 +63,25 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               sliver: SliverAppBar(
-                backgroundColor: CupertinoColors.systemGroupedBackground,
-                leading: IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () {
-                    wrapperScaffoldKey.currentState?.openDrawer();
-                  },
+                backgroundColor: theme.colorScheme.surface,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                leading: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      CupertinoIcons.line_horizontal_3,
+                      color: theme.colorScheme.onSecondaryContainer,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      wrapperScaffoldKey.currentState?.openDrawer();
+                    },
+                  ),
                 ),
                 title: Text(
                   'Password Generator',
@@ -86,15 +99,8 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
                 child: Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
                   ),
                   child: Column(
                     children: [
@@ -144,7 +150,7 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: _passwordStrength / 100,
-                              backgroundColor: Colors.grey.shade200,
+                              backgroundColor: theme.colorScheme.surfaceContainerHighest,
                               valueColor: AlwaysStoppedAnimation(strengthColor),
                               minHeight: 6,
                             ),
@@ -204,14 +210,21 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
                               color: theme.colorScheme.primary,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               borderRadius: BorderRadius.circular(12),
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(CupertinoIcons.refresh, size: 20),
-                                  SizedBox(width: 8),
+                                  Icon(
+                                    CupertinoIcons.refresh,
+                                    size: 20,
+                                    color: theme.colorScheme.onPrimary,
+                                  ),
+                                  const SizedBox(width: 8),
                                   Text(
                                     'Generate',
-                                    style: TextStyle(fontWeight: FontWeight.w600),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.onPrimary,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -230,7 +243,7 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: CupertinoSlidingSegmentedControl<bool>(
@@ -266,7 +279,7 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -326,7 +339,7 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
