@@ -48,3 +48,8 @@ app.*.map.json
 # ignore .env
 .env
 .env.*
+
+
+IMPLEMENTATION_GUIDE.md
+OFFLINE_FIRST_GUIDE.md
+OFFLINE_IMPLEMENTATION_SUMMARY.md

@@ -5,13 +5,30 @@ import 'package:go_router/go_router.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/cubit/_manage_cubit.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/cubit/_manage_state.dart';
+import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
+import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
 
-class ManagePage extends StatelessWidget {
+class ManagePage extends StatefulWidget {
   const ManagePage({super.key});
+
+  @override
+  State<ManagePage> createState() => _ManagePageState();
+}
+
+class _ManagePageState extends State<ManagePage> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final windowSize = MediaQuery.of(context).size;
+    final appBarHeight = windowSize.height * 0.067;
 
     return BlocBuilder<ManageCubit, ManageState>(
       builder: (context, state) {
@@ -66,11 +83,12 @@ class ManagePage extends StatelessWidget {
                 ),
                 // Scrollable content with top padding
                 CustomScrollView(
+                  controller: _scrollController,
                   physics: const BouncingScrollPhysics(),
                   slivers: [
                     // Top spacing for appbar
                     SliverToBoxAdapter(
-                      child: SizedBox(height: appBarHeight + MediaQuery.of(context).padding.top + 30),
+                      child: SizedBox(height: appBarHeight + MediaQuery.of(context).padding.top + 0),
                     ),
                     // All passwords card
                     SliverToBoxAdapter(
@@ -261,107 +279,20 @@ class ManagePage extends StatelessWidget {
                       const SliverToBoxAdapter(child: SizedBox(height: 20)),
                     ],
                 ),
-                // Fade background
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: IgnorePointer(
-                    child: ClipRect(
-                      child: Container(
-                        height: appBarHeight + MediaQuery.of(context).padding.top + 100,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              theme.colorScheme.surface,
-                              theme.colorScheme.surface,
-                              theme.colorScheme.surface.withAlpha(250),
-                              theme.colorScheme.surface.withAlpha(230),
-                              theme.colorScheme.surface.withAlpha(200),
-                              theme.colorScheme.surface.withAlpha(160),
-                              theme.colorScheme.surface.withAlpha(110),
-                              theme.colorScheme.surface.withAlpha(60),
-                              theme.colorScheme.surface.withAlpha(20),
-                              theme.colorScheme.surface.withAlpha(0),
-                            ],
-                            stops: const [0.0, 0.35, 0.5, 0.6, 0.68, 0.75, 0.82, 0.9, 0.96, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
+                // AppBar with gradient
+                ScrollableAppBar(
+                  title: 'Manage Vault',
+                  scrollController: _scrollController,
+                  leading: CircularActionButton(
+                    icon: Icons.menu,
+                    onTap: () {
+                      wrapperScaffoldKey.currentState?.openDrawer();
+                    },
                   ),
-                ),
-                // Fixed AppBar (transparent)
-                Positioned(
-                  top: MediaQuery.of(context).padding.top,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: appBarHeight,
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.all(8),
-                          padding: const EdgeInsets.all(13),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: theme.colorScheme.onSurface.withAlpha(20),
-                                offset: const Offset(2, 2),
-                                blurRadius: 10,
-                              ),
-                            ],
-                          ),
-                          child: GestureDetector(
-                            child: Icon(
-                              Icons.menu,
-                              color: theme.colorScheme.onSurface,
-                              size: 20,
-                            ),
-                            onTap: () {
-                              wrapperScaffoldKey.currentState?.openDrawer();
-                            },
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            'Manage Vault',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(13),
-                          margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: theme.colorScheme.onSurface.withAlpha(20),
-                                offset: const Offset(2, 2),
-                                blurRadius: 10,
-                              ),
-                            ],
-                          ),
-                          child: GestureDetector(
-                            child: Icon(
-                              CupertinoIcons.refresh,
-                              color: theme.colorScheme.onSurface,
-                              size: 20,
-                            ),
-                            onTap: () => context.read<ManageCubit>().loadData(),
-                          ),
-                        ),
-                      ],
-                    ),
+                  trailing: CircularActionButton(
+                    icon: CupertinoIcons.refresh,
+                    onTap: () => context.read<ManageCubit>().loadData(),
+                    margin: const EdgeInsets.only(right: 8),
                   ),
                 ),
               ],

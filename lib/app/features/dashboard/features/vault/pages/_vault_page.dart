@@ -12,6 +12,8 @@ import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_slo
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_password_health_card.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_categories_section.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_types_section.dart';
+import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
+import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
 
 class VaultPage extends StatefulWidget {
   const VaultPage({super.key});
@@ -24,6 +26,7 @@ class _VaultPageState extends State<VaultPage> {
   // Service for managing authentication and user session data
   final AuthStorageService _authStorage = AuthStorageService();
   final SupabaseVaultService _vaultService = SupabaseVaultService();
+  final ScrollController _scrollController = ScrollController();
 
   // User profile information
   String? userName;
@@ -38,6 +41,12 @@ class _VaultPageState extends State<VaultPage> {
     super.initState();
     _loadUserData();
     _loadVaultItems();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   /// Fetches user session data from storage and updates the UI
@@ -97,72 +106,41 @@ class _VaultPageState extends State<VaultPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final windowSize = MediaQuery.of(context).size;
+    final appBarHeight = windowSize.height * 0.067;
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // App bar with user avatar and add button
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              sliver: SliverAppBar(
-                backgroundColor: theme.colorScheme.surface,
-                surfaceTintColor: Colors.transparent,
-                elevation: 0,
-                leading: Container(
-                  margin: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    shape: BoxShape.circle,
-
-                    // neumorphic shadow
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.onSurface.withAlpha(20),
-                        offset: const Offset(2, 2),
-                        blurRadius: 10,
-                      ),
-                    ],
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.menu,
-                      color: theme.colorScheme.onSurface,
-                      size: 20,
+        top: false,
+        child: Stack(
+          children: [
+            // Background
+            Container(
+              color: theme.colorScheme.surface,
+            ),
+            // Scrollable content
+            CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                // Top spacing for appbar
+                SliverToBoxAdapter(
+                  child: SizedBox(height: appBarHeight + MediaQuery.of(context).padding.top),
+                ),
+                // Welcome slogan section
+                const SliverToBoxAdapter(child: VaultSloganSection()),
+                // Horizontal scrollable categories with fade effect
+                SliverToBoxAdapter(
+                  child: VaultCategoriesSection(
+                    categories: _categories,
+                    onAddCategory: () => showAddCategoryBottomSheet(
+                      wrapperScaffoldKey.currentState!.context,
                     ),
-                    onPressed: () {
-                      wrapperScaffoldKey.currentState?.openDrawer();
+                    onCategoryTap: (category) {
+                      // category tap
                     },
                   ),
                 ),
-                pinned: true,
-                actions: [
-                  VaultAddButton(
-                    onPressed: () async {
-                      final result = await showVaultAddEditDialog(context);
-                      if (result == true && mounted) {
-                        // Password added successfully - reload data
-                        _loadVaultItems();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            // Welcome slogan section
-            const SliverToBoxAdapter(child: VaultSloganSection()),
-            // Horizontal scrollable categories with fade effect
-            SliverToBoxAdapter(
-              child: VaultCategoriesSection(
-                categories: _categories,
-                onAddCategory: () => showAddCategoryBottomSheet(
-                  wrapperScaffoldKey.currentState!.context,
-                ),
-                onCategoryTap: (category) {
-                  // category tap
-                },
-              ),
-            ),
             // Horizontal scrollable types with fade effect
             SliverToBoxAdapter(
               child: VaultTypesSection(
@@ -263,8 +241,28 @@ class _VaultPageState extends State<VaultPage> {
                         return _buildPasswordItem(theme, item);
                       }, childCount: _vaultItems.length),
                     ),
-                  ),
-          ],
+                  ),              ],
+            ),
+            // ScrollableAppBar
+            ScrollableAppBar(
+              title: 'Vault',
+              scrollController: _scrollController,
+              leading: CircularActionButton(
+                icon: Icons.menu,
+                onTap: () {
+                  wrapperScaffoldKey.currentState?.openDrawer();
+                },
+              ),
+              trailing: VaultAddButton(
+                onPressed: () async {
+                  final result = await showVaultAddEditDialog(context);
+                  if (result == true && mounted) {
+                    // Password added successfully - reload data
+                    _loadVaultItems();
+                  }
+                },
+              ),
+            ),          ],
         ),
       ),
     );
