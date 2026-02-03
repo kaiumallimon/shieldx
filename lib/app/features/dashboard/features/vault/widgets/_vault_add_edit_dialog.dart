@@ -5,6 +5,7 @@ import 'package:toastification/toastification.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/core/services/password_generator_service.dart';
@@ -127,6 +128,8 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
         passwordHealth: _passwordController.text.isEmpty
             ? PasswordHealthStatus.unknown
             : _getPasswordHealth(_passwordController.text),
+        iconUrl: _getBrandfetchLogoUrl(_websiteController.text),
+        iconCachedAt: _websiteController.text.isEmpty ? null : DateTime.now(),
         createdAt: widget.existingItem?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
         version: (widget.existingItem?.version ?? 0) + 1,
@@ -186,6 +189,32 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
       _passwordController.text = generatedPassword;
     });
     HapticFeedback.mediumImpact();
+  }
+
+  /// Sanitize URL to get domain for brandfetch
+  String? _sanitizeUrlForBrandfetch(String? url) {
+    if (url == null || url.isEmpty) return null;
+
+    // Remove protocol
+    String domain = url
+        .replaceAll(RegExp(r'^https?://'), '')
+        .replaceAll(RegExp(r'^www\.'), '');
+
+    // Remove path and query parameters
+    final slashIndex = domain.indexOf('/');
+    if (slashIndex != -1) {
+      domain = domain.substring(0, slashIndex);
+    }
+
+    return domain.isNotEmpty ? domain : null;
+  }
+
+  /// Get brandfetch logo URL
+  String? _getBrandfetchLogoUrl(String? websiteUrl) {
+    final domain = _sanitizeUrlForBrandfetch(websiteUrl);
+    if (domain == null) return null;
+    final apiKey = dotenv.env['BRANDFETCH_API_KEY'] ?? '';
+    return 'https://cdn.brandfetch.io/$domain?c=$apiKey';
   }
 
   @override
@@ -309,13 +338,50 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Website URL
-                  _buildTextField(
-                    controller: _websiteController,
-                    label: 'Website URL',
-                    hint: 'https://example.com',
-                    icon: CupertinoIcons.globe,
-                    keyboardType: TextInputType.url,
+                  // Website URL with logo preview
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          controller: _websiteController,
+                          label: 'Website URL',
+                          hint: 'https://example.com',
+                          icon: CupertinoIcons.globe,
+                          keyboardType: TextInputType.url,
+                          onChanged: (value) => setState(() {}),
+                        ),
+                      ),
+                      if (_getBrandfetchLogoUrl(_websiteController.text) !=
+                          null)
+                        const SizedBox(width: 12),
+                      if (_getBrandfetchLogoUrl(_websiteController.text) !=
+                          null)
+                        Container(
+                          width: 56,
+                        height: 56,
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: theme.colorScheme.outline.withAlpha(100),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            _getBrandfetchLogoUrl(_websiteController.text)!,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              CupertinoIcons.globe,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
 
@@ -573,6 +639,7 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
     TextInputType? keyboardType,
     int maxLines = 1,
     String? Function(String?)? validator,
+    void Function(String)? onChanged,
   }) {
     final theme = Theme.of(context);
     return Column(
@@ -595,6 +662,7 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
             keyboardType: keyboardType,
             maxLines: maxLines,
             validator: validator,
+            onChanged: onChanged,
             style: theme.textTheme.bodyLarge,
             decoration: InputDecoration(
               hintText: hint,
@@ -695,11 +763,44 @@ Future<bool?> showVaultAddEditDialog(
   VaultItem? existingItem,
   CredentialCategory? initialCategory,
 }) {
-  return showDialog<bool>(
+  return showModalBottomSheet<bool>(
     context: context,
-    builder: (context) => VaultAddEditDialog(
-      existingItem: existingItem,
-      initialCategory: initialCategory,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(50),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(
+              child: VaultAddEditDialog(
+                existingItem: existingItem,
+                initialCategory: initialCategory,
+              ),
+            ),
+          ],
+        ),
+      ),
     ),
   );
 }

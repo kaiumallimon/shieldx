@@ -265,7 +265,7 @@ class _VaultPageState extends State<VaultPage> {
                 scrollController: _scrollController,
                 icon: CupertinoIcons.add,
                 onTap: () async {
-                  final result = await showVaultAddEditDialog(context);
+                  final result = await showVaultAddEditDialog(wrapperScaffoldKey.currentState!.context);
                   if (result == true && mounted) {
                     // Password added successfully - reload data
                     _loadVaultItems();
@@ -277,6 +277,31 @@ class _VaultPageState extends State<VaultPage> {
         ),
       ),
     );
+  }
+
+  /// Sanitize URL to get domain for brandfetch
+  String? _sanitizeUrlForBrandfetch(String? url) {
+    if (url == null || url.isEmpty) return null;
+
+    // Remove protocol
+    String domain = url
+        .replaceAll(RegExp(r'^https?://'), '')
+        .replaceAll(RegExp(r'^www\.'), '');
+
+    // Remove path and query parameters
+    final slashIndex = domain.indexOf('/');
+    if (slashIndex != -1) {
+      domain = domain.substring(0, slashIndex);
+    }
+
+    return domain.isNotEmpty ? domain : null;
+  }
+
+  /// Get brandfetch logo URL
+  String? _getBrandfetchLogoUrl(String? websiteUrl) {
+    final domain = _sanitizeUrlForBrandfetch(websiteUrl);
+    if (domain == null) return null;
+    return 'https://cdn.brandfetch.io/$domain';
   }
 
   Widget _buildPasswordItem(ThemeData theme, VaultItem item) {
@@ -295,16 +320,31 @@ class _VaultPageState extends State<VaultPage> {
           }
         },
         leading: Container(
+          width: 56,
+          height: 56,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: theme.colorScheme.primaryContainer,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            _getCategoryIcon(item.category),
-            color: theme.colorScheme.onPrimaryContainer,
-            size: 24,
-          ),
+          child: item.iconUrl != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    item.iconUrl!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Icon(
+                      _getCategoryIcon(item.category),
+                      color: theme.colorScheme.onPrimaryContainer,
+                      size: 24,
+                    ),
+                  ),
+                )
+              : Icon(
+                  _getCategoryIcon(item.category),
+                  color: theme.colorScheme.onPrimaryContainer,
+                  size: 24,
+                ),
         ),
         title: Text(
           item.title,
