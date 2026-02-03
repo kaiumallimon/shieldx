@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_edit_dialog.dart';
+import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
+import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
 
 class VaultItemDetailPage extends StatefulWidget {
   final VaultItem vaultItem;
@@ -16,6 +20,7 @@ class VaultItemDetailPage extends StatefulWidget {
 
 class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
   final _supabaseService = SupabaseVaultService();
+  final ScrollController _scrollController = ScrollController();
   bool _isPasswordVisible = false;
   bool _isDeleting = false;
   late VaultItem _currentItem;
@@ -31,6 +36,12 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
     super.initState();
     _currentItem = widget.vaultItem;
     _loadDecryptedData();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   void _loadDecryptedData() {
@@ -142,137 +153,183 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final windowSize = MediaQuery.of(context).size;
+    final appBarHeight = windowSize.height * 0.067;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        title: Text(_currentItem.title),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _currentItem.isFavorite ? CupertinoIcons.star_fill : CupertinoIcons.star,
-              color: _currentItem.isFavorite ? Colors.amber : null,
-            ),
-            onPressed: _toggleFavorite,
-          ),
-          IconButton(
-            icon: const Icon(CupertinoIcons.pencil),
-            onPressed: _editItem,
-          ),
-          IconButton(
-            icon: const Icon(CupertinoIcons.trash),
-            onPressed: _isDeleting ? null : _deleteItem,
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Category badge
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(20),
+      body: SafeArea(
+        top: false,
+        child: Stack(
+          children: [
+            // Background
+            Container(color: theme.colorScheme.surface),
+            // Scrollable content
+            CustomScrollView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // Top spacing for appbar
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: appBarHeight + MediaQuery.of(context).padding.top,
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _getCategoryIcon(_currentItem.category),
-                      size: 16,
-                      color: theme.colorScheme.onPrimaryContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _getCategoryName(_currentItem.category),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w600,
+                // Content
+                SliverPadding(
+                  padding: const EdgeInsets.all(20),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // Category badge
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _getCategoryIcon(_currentItem.category),
+                                  size: 16,
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _getCategoryName(_currentItem.category),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _getHealthColor(_currentItem.passwordHealth).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: _getHealthColor(_currentItem.passwordHealth),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              _getHealthLabel(_currentItem.passwordHealth),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: _getHealthColor(_currentItem.passwordHealth),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: _getHealthColor(_currentItem.passwordHealth).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: _getHealthColor(_currentItem.passwordHealth),
-                    width: 1,
+                      const SizedBox(height: 24),
+
+                      // Website
+                      if (_currentItem.websiteUrl != null) ...[
+                        _buildInfoCard(
+                          theme,
+                          icon: CupertinoIcons.globe,
+                          label: 'Website',
+                          value: _currentItem.websiteUrl!,
+                          onCopy: () => _copyToClipboard(_currentItem.websiteUrl!, 'Website URL'),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Username
+                      if (_decryptedUsername != null) ...[
+                        _buildInfoCard(
+                          theme,
+                          icon: CupertinoIcons.person,
+                          label: 'Username',
+                          value: _decryptedUsername!,
+                          onCopy: () => _copyToClipboard(_decryptedUsername!, 'Username'),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Email
+                      if (_decryptedEmail != null) ...[
+                        _buildInfoCard(
+                          theme,
+                          icon: CupertinoIcons.mail,
+                          label: 'Email',
+                          value: _decryptedEmail!,
+                          onCopy: () => _copyToClipboard(_decryptedEmail!, 'Email'),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Password
+                      if (_decryptedPassword != null) ...[
+                        _buildPasswordCard(theme),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Notes
+                      if (_decryptedNotes != null && _decryptedNotes!.isNotEmpty) ...[
+                        _buildNotesCard(theme),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Metadata
+                      _buildMetadataCard(theme),
+
+                      const SizedBox(height: 20),
+                      // Bottom spacing for navigation
+                      SizedBox(
+                        height: MediaQuery.of(context).padding.bottom + 20,
+                      ),
+                    ]),
                   ),
                 ),
-                child: Text(
-                  _getHealthLabel(_currentItem.passwordHealth),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: _getHealthColor(_currentItem.passwordHealth),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              ],
+            ),
+            // ScrollableAppBar
+            ScrollableAppBar(
+              scrollController: _scrollController,
+              title: _currentItem.title,
+              leading: CircularActionButton(
+                icon: LucideIcons.chevronLeft,
+                onTap: () {
+                  context.pop();
+                },
+                scrollController: _scrollController,
               ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Website
-          if (_currentItem.websiteUrl != null) ...[
-            _buildInfoCard(
-              theme,
-              icon: CupertinoIcons.globe,
-              label: 'Website',
-              value: _currentItem.websiteUrl!,
-              onCopy: () => _copyToClipboard(_currentItem.websiteUrl!, 'Website URL'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularActionButton(
+                    icon: _currentItem.isFavorite ? Icons.star : Icons.star_border,
+                    onTap: _toggleFavorite,
+                    scrollController: _scrollController,
+                    iconColor: _currentItem.isFavorite ? Colors.amber : null,
+                  ),
+                  const SizedBox(width: 8),
+                  CircularActionButton(
+                    icon: LucideIcons.pencil,
+                    onTap: _editItem,
+                    scrollController: _scrollController,
+                  ),
+                  const SizedBox(width: 8),
+                  CircularActionButton(
+                    icon: LucideIcons.trash2,
+                    onTap: _isDeleting ? () {} : _deleteItem,
+                    scrollController: _scrollController,
+                    iconColor: theme.colorScheme.error,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
           ],
-
-          // Username
-          if (_decryptedUsername != null) ...[
-            _buildInfoCard(
-              theme,
-              icon: CupertinoIcons.person,
-              label: 'Username',
-              value: _decryptedUsername!,
-              onCopy: () => _copyToClipboard(_decryptedUsername!, 'Username'),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Email
-          if (_decryptedEmail != null) ...[
-            _buildInfoCard(
-              theme,
-              icon: CupertinoIcons.mail,
-              label: 'Email',
-              value: _decryptedEmail!,
-              onCopy: () => _copyToClipboard(_decryptedEmail!, 'Email'),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Password
-          if (_decryptedPassword != null) ...[
-            _buildPasswordCard(theme),
-            const SizedBox(height: 16),
-          ],
-
-          // Notes
-          if (_decryptedNotes != null && _decryptedNotes!.isNotEmpty) ...[
-            _buildNotesCard(theme),
-            const SizedBox(height: 16),
-          ],
-
-          // Metadata
-          _buildMetadataCard(theme),
-        ],
+        ),
       ),
     );
   }

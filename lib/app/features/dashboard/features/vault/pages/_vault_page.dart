@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
-import 'package:shieldx/app/features/dashboard/features/vault/pages/_vault_item_detail_page.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_button.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_category_bottom_sheet.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_edit_dialog.dart';
@@ -308,16 +308,8 @@ class _VaultPageState extends State<VaultPage> {
             borderRadius: BorderRadius.circular(16),
           ),
           child: ListTile(
-            onTap: () async {
-              final result = await Navigator.of(context).push(
-                CupertinoPageRoute(
-                  builder: (context) => VaultItemDetailPage(vaultItem: item),
-                ),
-              );
-              if (result == true && mounted) {
-                // Item was deleted, reload list
-                _loadVaultItems();
-              }
+            onTap: () {
+              context.push('/vault/item/${item.id}', extra: item);
             },
             leading: Container(
               padding: const EdgeInsets.all(12),

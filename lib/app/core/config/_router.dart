@@ -7,6 +7,7 @@ import 'package:shieldx/app/features/dashboard/features/generator/pages/_generat
 import 'package:shieldx/app/features/dashboard/features/security/pages/_security_page.dart';
 import 'package:shieldx/app/features/dashboard/features/settings/pages/_settings_page.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/pages/_vault_page.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/pages/_vault_item_detail_page.dart';
 import 'package:shieldx/app/features/dashboard/features/tools/pages/_tools_page.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/pages/_manage_page.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/pages/_all_passwords_page.dart';
@@ -14,6 +15,7 @@ import 'package:shieldx/app/features/dashboard/features/manage/pages/_category_d
 import 'package:shieldx/app/features/dashboard/features/manage/pages/_type_detail_page.dart';
 import 'package:shieldx/app/features/splash/pages/_splash_page.dart';
 import 'package:shieldx/app/features/welcome/pages/_welcome_page.dart';
+import 'package:shieldx/app/data/models/vault_item_model.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -109,6 +111,25 @@ final router = GoRouter(
         final type = state.pathParameters['type'] ?? '';
         return material3TransitionPage(
           child: TypeDetailPage(type: type),
+        );
+      },
+    ),
+
+    // Vault item detail page
+    GoRoute(
+      path: '/vault/item/:id',
+      pageBuilder: (context, state) {
+        final item = state.extra as VaultItem?;
+        if (item == null) {
+          // Handle error - item not found
+          return material3TransitionPage(
+            child: const Scaffold(
+              body: Center(child: Text('Item not found')),
+            ),
+          );
+        }
+        return material3TransitionPage(
+          child: VaultItemDetailPage(vaultItem: item),
         );
       },
     ),
