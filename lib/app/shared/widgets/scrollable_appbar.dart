@@ -56,13 +56,14 @@ class _ScrollableAppBarState extends State<ScrollableAppBar> {
 
     return Stack(
       children: [
-        // Fade background
+        // Fade background - positioned behind with IgnorePointer
         if (widget.showGradientOnScroll)
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             child: IgnorePointer(
+              ignoring: true,
               child: AnimatedOpacity(
                 opacity: _showGradient ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 200),
@@ -105,32 +106,35 @@ class _ScrollableAppBarState extends State<ScrollableAppBar> {
               ),
             ),
           ),
-        // Fixed AppBar (transparent)
+        // Fixed AppBar (transparent) - in front with pointer events enabled
         Positioned(
           top: MediaQuery.of(context).padding.top,
           left: 0,
           right: 0,
-          child: Container(
-            height: appBarHeight,
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Row(
-              mainAxisAlignment: widget.title == null
-                  ? MainAxisAlignment.spaceBetween
-                  : MainAxisAlignment.start,
-              spacing: 8,
-              children: [
-                if (widget.leading != null) widget.leading!,
-                if (widget.title != null)
-                  Expanded(
-                    child: Text(
-                      widget.title!,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+          child: AbsorbPointer(
+            absorbing: false,
+            child: Container(
+              height: appBarHeight,
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                mainAxisAlignment: widget.title == null
+                    ? MainAxisAlignment.spaceBetween
+                    : MainAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  if (widget.leading != null) widget.leading!,
+                  if (widget.title != null)
+                    Expanded(
+                      child: Text(
+                        widget.title!,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                if (widget.trailing != null) widget.trailing!,
-              ],
+                  if (widget.trailing != null) widget.trailing!,
+                ],
+              ),
             ),
           ),
         ),
