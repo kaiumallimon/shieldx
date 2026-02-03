@@ -138,7 +138,7 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
       try {
         await _supabaseService.deleteVaultItem(_currentItem.id);
         if (mounted) {
-          Navigator.of(context).pop(true); // Return true to indicate deletion
+          context.pop(true); // Return true to indicate deletion
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Password deleted successfully'),

@@ -312,8 +312,12 @@ class _VaultPageState extends State<VaultPage> {
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListTile(
-        onTap: () {
-          context.push('/vault/item/${item.id}', extra: item);
+        onTap: () async {
+          final result = await context.push('/vault/item/${item.id}', extra: item);
+          // If item was deleted, reload the list
+          if (result == true && mounted) {
+            _loadVaultItems();
+          }
         },
         leading: Container(
           padding: const EdgeInsets.all(12),
