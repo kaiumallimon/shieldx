@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'dart:convert';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_edit_dialog.dart';
@@ -30,6 +31,7 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
   String? _decryptedEmail;
   String? _decryptedPassword;
   String? _decryptedNotes;
+  String? _actualPassword; // Store the actual password separately
 
   @override
   void initState() {
@@ -45,19 +47,47 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
   }
 
   void _loadDecryptedData() {
-    // TODO: Implement proper decryption
-    // For now, just showing placeholder data
-    setState(() {
-      _decryptedUsername = 'username@example.com';
-      _decryptedEmail = 'user@example.com';
-      _decryptedPassword = '••••••••••••';
-      _decryptedNotes = _currentItem.notesPreview;
-    });
+    try {
+      // Decrypt the payload - currently using base64 decoding
+      // TODO: Implement proper encryption with user's master key
+      final decryptedBytes = base64Decode(_currentItem.encryptedPayload);
+      final decryptedString = utf8.decode(decryptedBytes);
+      final payloadJson = jsonDecode(decryptedString) as Map<String, dynamic>;
+
+      final payload = VaultItemPayload.fromJson(payloadJson);
+
+      setState(() {
+        _decryptedUsername = payload.username;
+        _decryptedEmail = payload.email;
+        _actualPassword = payload.password;
+        _decryptedPassword = payload.password != null ? '••••••••••••' : null;
+        _decryptedNotes = payload.notes;
+      });
+    } catch (e) {
+      // If decryption fails, show error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error decrypting data: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+      setState(() {
+        _decryptedUsername = null;
+        _decryptedEmail = null;
+        _actualPassword = null;
+        _decryptedPassword = null;
+        _decryptedNotes = _currentItem.notesPreview;
+      });
+    }
   }
 
   Future<void> _toggleFavorite() async {
     try {
-      final updated = _currentItem.copyWith(isFavorite: !_currentItem.isFavorite);
+      final updated = _currentItem.copyWith(
+        isFavorite: !_currentItem.isFavorite,
+      );
       await _supabaseService.updateVaultItem(updated);
       setState(() => _currentItem = updated);
       HapticFeedback.mediumImpact();
@@ -78,7 +108,9 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Password'),
-        content: Text('Are you sure you want to delete "${_currentItem.title}"?'),
+        content: Text(
+          'Are you sure you want to delete "${_currentItem.title}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -184,7 +216,10 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               color: theme.colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(20),
@@ -210,19 +245,28 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                           ),
                           const SizedBox(width: 12),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
-                              color: _getHealthColor(_currentItem.passwordHealth).withOpacity(0.1),
+                              color: _getHealthColor(
+                                _currentItem.passwordHealth,
+                              ).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: _getHealthColor(_currentItem.passwordHealth),
+                                color: _getHealthColor(
+                                  _currentItem.passwordHealth,
+                                ),
                                 width: 1,
                               ),
                             ),
                             child: Text(
                               _getHealthLabel(_currentItem.passwordHealth),
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: _getHealthColor(_currentItem.passwordHealth),
+                                color: _getHealthColor(
+                                  _currentItem.passwordHealth,
+                                ),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -238,7 +282,10 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                           icon: CupertinoIcons.globe,
                           label: 'Website',
                           value: _currentItem.websiteUrl!,
-                          onCopy: () => _copyToClipboard(_currentItem.websiteUrl!, 'Website URL'),
+                          onCopy: () => _copyToClipboard(
+                            _currentItem.websiteUrl!,
+                            'Website URL',
+                          ),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -250,7 +297,8 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                           icon: CupertinoIcons.person,
                           label: 'Username',
                           value: _decryptedUsername!,
-                          onCopy: () => _copyToClipboard(_decryptedUsername!, 'Username'),
+                          onCopy: () =>
+                              _copyToClipboard(_decryptedUsername!, 'Username'),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -262,7 +310,8 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                           icon: CupertinoIcons.mail,
                           label: 'Email',
                           value: _decryptedEmail!,
-                          onCopy: () => _copyToClipboard(_decryptedEmail!, 'Email'),
+                          onCopy: () =>
+                              _copyToClipboard(_decryptedEmail!, 'Email'),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -274,7 +323,8 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                       ],
 
                       // Notes
-                      if (_decryptedNotes != null && _decryptedNotes!.isNotEmpty) ...[
+                      if (_decryptedNotes != null &&
+                          _decryptedNotes!.isNotEmpty) ...[
                         _buildNotesCard(theme),
                         const SizedBox(height: 16),
                       ],
@@ -283,9 +333,9 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                       _buildMetadataCard(theme),
 
                       const SizedBox(height: 20),
-                      // Bottom spacing for navigation
+                      // Bottom spacing for footer
                       SizedBox(
-                        height: MediaQuery.of(context).padding.bottom + 20,
+                        height: MediaQuery.of(context).padding.bottom + 90,
                       ),
                     ]),
                   ),
@@ -303,29 +353,51 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                 },
                 scrollController: _scrollController,
               ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularActionButton(
-                    icon: _currentItem.isFavorite ? Icons.star : Icons.star_border,
-                    onTap: _toggleFavorite,
-                    scrollController: _scrollController,
-                    iconColor: _currentItem.isFavorite ? Colors.amber : null,
+            ),
+            // Action buttons footer
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(
+                      color: theme.colorScheme.onSurface.withAlpha(25),
+                      width: 1,
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  CircularActionButton(
-                    icon: LucideIcons.pencil,
-                    onTap: _editItem,
-                    scrollController: _scrollController,
-                  ),
-                  const SizedBox(width: 8),
-                  CircularActionButton(
-                    icon: LucideIcons.trash2,
-                    onTap: _isDeleting ? () {} : _deleteItem,
-                    scrollController: _scrollController,
-                    iconColor: theme.colorScheme.error,
-                  ),
-                ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularActionButton(
+                      onTap: _toggleFavorite,
+                      icon: _currentItem.isFavorite
+                          ? Icons.star
+                          : Icons.star_border,
+                      scrollController: _scrollController,
+                    ),
+                    const SizedBox(width: 12),
+                    CircularActionButton(
+                      onTap: _editItem,
+                      icon: LucideIcons.edit3,
+                      scrollController: _scrollController,
+                    ),
+                    const SizedBox(width: 12),
+                    CircularActionButton(
+                      onTap: ()async {
+                        if (!_isDeleting) {
+                          await _deleteItem();
+                        }
+                      },
+                      icon: LucideIcons.trash,
+                      scrollController: _scrollController,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -344,7 +416,7 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.secondary.withAlpha(25),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -375,8 +447,9 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                 ),
               ),
               IconButton(
-                icon: const Icon(CupertinoIcons.doc_on_clipboard, size: 20),
+                icon: const Icon(LucideIcons.copy),
                 onPressed: onCopy,
+                color: theme.colorScheme.onSurface.withAlpha(128),
                 tooltip: 'Copy',
               ),
             ],
@@ -390,7 +463,7 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.secondary.withAlpha(25),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -398,8 +471,12 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
         children: [
           Row(
             children: [
-              Icon(CupertinoIcons.lock, size: 20, color: theme.colorScheme.primary),
-              const SizedBox(width: 8),
+              Icon(
+                LucideIcons.key,
+                size: 20,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 10),
               Text(
                 'Password',
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -414,7 +491,9 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
             children: [
               Expanded(
                 child: Text(
-                  _isPasswordVisible ? _decryptedPassword! : '••••••••••••',
+                  _isPasswordVisible
+                      ? (_actualPassword ?? '••••••••••••')
+                      : '••••••••••••',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w500,
                     fontFamily: _isPasswordVisible ? 'monospace' : null,
@@ -423,15 +502,19 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
               ),
               IconButton(
                 icon: Icon(
-                  _isPasswordVisible ? CupertinoIcons.eye_slash : CupertinoIcons.eye,
+                  _isPasswordVisible
+                      ? CupertinoIcons.eye_slash
+                      : CupertinoIcons.eye,
                   size: 20,
                 ),
-                onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                onPressed: () =>
+                    setState(() => _isPasswordVisible = !_isPasswordVisible),
                 tooltip: _isPasswordVisible ? 'Hide' : 'Show',
               ),
               IconButton(
                 icon: const Icon(CupertinoIcons.doc_on_clipboard, size: 20),
-                onPressed: () => _copyToClipboard(_decryptedPassword!, 'Password'),
+                onPressed: () =>
+                    _copyToClipboard(_actualPassword ?? '', 'Password'),
                 tooltip: 'Copy',
               ),
             ],
@@ -445,7 +528,7 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.secondary.withAlpha(25),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -453,7 +536,11 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
         children: [
           Row(
             children: [
-              Icon(CupertinoIcons.doc_text, size: 20, color: theme.colorScheme.primary),
+              Icon(
+                LucideIcons.file,
+                size: 20,
+                color: theme.colorScheme.primary,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Notes',
@@ -465,10 +552,7 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            _decryptedNotes!,
-            style: theme.textTheme.bodyMedium,
-          ),
+          Text(_decryptedNotes!, style: theme.textTheme.bodyMedium),
         ],
       ),
     );
@@ -478,7 +562,7 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.primary.withAlpha(25),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -491,12 +575,24 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildMetadataRow(theme, 'Created', _formatDate(_currentItem.createdAt)),
+          _buildMetadataRow(
+            theme,
+            'Created',
+            _formatDate(_currentItem.createdAt),
+          ),
           const Divider(height: 24),
-          _buildMetadataRow(theme, 'Modified', _formatDate(_currentItem.updatedAt)),
+          _buildMetadataRow(
+            theme,
+            'Modified',
+            _formatDate(_currentItem.updatedAt),
+          ),
           if (_currentItem.lastUsedAt != null) ...[
             const Divider(height: 24),
-            _buildMetadataRow(theme, 'Last Used', _formatDate(_currentItem.lastUsedAt!)),
+            _buildMetadataRow(
+              theme,
+              'Last Used',
+              _formatDate(_currentItem.lastUsedAt!),
+            ),
           ],
         ],
       ),
@@ -564,10 +660,9 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
   }
 
   String _getCategoryName(CredentialCategory category) {
-    return category.name.replaceAllMapped(
-      RegExp(r'[A-Z]'),
-      (match) => ' ${match.group(0)}',
-    ).trim();
+    return category.name
+        .replaceAllMapped(RegExp(r'[A-Z]'), (match) => ' ${match.group(0)}')
+        .trim();
   }
 
   Color _getHealthColor(PasswordHealthStatus status) {
