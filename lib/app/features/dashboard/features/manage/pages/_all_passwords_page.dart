@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
 import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
@@ -64,6 +65,28 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
     }
   }
 
+  /// Refresh passwords (for pull to refresh)
+  Future<void> _refreshPasswords() async {
+    try {
+      final items = await _vaultService.getAllVaultItems();
+      if (mounted) {
+        setState(() {
+          _passwords = items;
+          _error = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        toastification.show(
+          context: context,
+          title: Text('Error refreshing passwords: $e'),
+          type: ToastificationType.error,
+          autoCloseDuration: const Duration(seconds: 3),
+        );
+      }
+    }
+  }
+
   List<VaultItem> get _filteredPasswords {
     var filtered = _passwords.where((p) {
       final title = p.title.toLowerCase();
@@ -107,6 +130,10 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               slivers: [
+                // Pull to refresh
+                CupertinoSliverRefreshControl(
+                  onRefresh: _refreshPasswords,
+                ),
                 // Top spacing for appbar
                 SliverToBoxAdapter(
                   child: SizedBox(
@@ -115,10 +142,15 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
                 ),
                 // Content
                 _isLoading
-                    ? SliverFillRemaining(
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: theme.colorScheme.primary,
+                    ? SliverPadding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => _buildShimmerItem(theme),
+                            childCount: 8,
                           ),
                         ),
                       )
@@ -251,6 +283,67 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
                 icon: LucideIcons.refreshCw,
                 onTap: _loadPasswords,
                 scrollController: _scrollController,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerItem(ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Shimmer.fromColors(
+        baseColor: theme.colorScheme.secondary.withAlpha(25),
+        highlightColor: theme.colorScheme.secondary.withAlpha(100),
+        child: Row(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 16,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 12,
+                    width: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 60,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
           ],
