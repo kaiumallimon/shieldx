@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/cubit/_manage_cubit.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/cubit/_manage_state.dart';
@@ -29,21 +30,16 @@ class _ManagePageState extends State<ManagePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final windowSize = MediaQuery.of(context).size;
-    final appBarHeight = windowSize.height * 0.067;
 
     return BlocBuilder<ManageCubit, ManageState>(
       builder: (context, state) {
         if (state is ManageInitial) {
           context.read<ManageCubit>().loadData();
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return _buildShimmerLoading(context);
         }
 
         if (state is ManageLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return _buildShimmerLoading(context);
         }
 
         if (state is ManageError) {
@@ -80,11 +76,19 @@ class _ManagePageState extends State<ManagePage> {
               children: [
                 // Background
                 Container(color: theme.colorScheme.surface),
-                // Scrollable content with top padding
+                // Scrollable content with iOS-style pull-to-refresh
                 CustomScrollView(
                   controller: _scrollController,
-                  physics: const BouncingScrollPhysics(),
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
                   slivers: [
+                    // iOS-style refresh control
+                    CupertinoSliverRefreshControl(
+                      onRefresh: () async {
+                        await context.read<ManageCubit>().loadData();
+                      },
+                    ),
                     // Top spacing for appbar
                     SliverToBoxAdapter(
                       child: SizedBox(
@@ -299,12 +303,7 @@ class _ManagePageState extends State<ManagePage> {
                       wrapperScaffoldKey.currentState?.openDrawer();
                     },
                   ),
-                  trailing: CircularActionButton(
-                    scrollController: _scrollController,
-                    icon: CupertinoIcons.refresh,
-                    onTap: () => context.read<ManageCubit>().loadData(),
-                    margin: const EdgeInsets.only(right: 8),
-                  ),
+
                 ),
               ],
             ),
@@ -471,6 +470,268 @@ class _ManagePageState extends State<ManagePage> {
               color: theme.colorScheme.onSurface.withAlpha(50),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerLoading(BuildContext context) {
+    final theme = Theme.of(context);
+    final windowSize = MediaQuery.of(context).size;
+    final appBarHeight = windowSize.height * 0.067;
+
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      body: SafeArea(
+        top: false,
+        child: Stack(
+          children: [
+            Container(color: theme.colorScheme.surface),
+            CustomScrollView(
+              controller: _scrollController,
+              physics: const NeverScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: appBarHeight + MediaQuery.of(context).padding.top,
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: _buildShimmerMainCard(theme),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildShimmerText(theme, width: 100, height: 20),
+                        const SizedBox(height: 15),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 1.3,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _buildShimmerCategoryCard(theme),
+                      childCount: 6,
+                    ),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 30)),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildShimmerText(theme, width: 120, height: 20),
+                        const SizedBox(height: 15),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildShimmerTypeCard(theme),
+                      ),
+                      childCount: 5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            ScrollableAppBar(
+              title: 'Manage Vault',
+              scrollController: _scrollController,
+              leading: CircularActionButton(
+                scrollController: _scrollController,
+                icon: LucideIcons.menu,
+                onTap: () {
+                  wrapperScaffoldKey.currentState?.openDrawer();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerMainCard(ThemeData theme) {
+    return Shimmer.fromColors(
+      baseColor: theme.colorScheme.surfaceContainerHighest,
+      highlightColor: theme.colorScheme.surface,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 55,
+              height: 55,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 150,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 200,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerCategoryCard(ThemeData theme) {
+    return Shimmer.fromColors(
+      baseColor: theme.colorScheme.surface,
+      highlightColor: theme.colorScheme.secondary,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: 80,
+              height: 16,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              width: 50,
+              height: 12,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerTypeCard(ThemeData theme) {
+    return Shimmer.fromColors(
+      baseColor: theme.colorScheme.surface,
+      highlightColor: theme.colorScheme.secondary,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 150,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 80,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerText(ThemeData theme,
+      {required double width, required double height}) {
+    return Shimmer.fromColors(
+      baseColor: theme.colorScheme.surface,
+      highlightColor: theme.colorScheme.secondary.withAlpha(50),
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.secondary,
+          borderRadius: BorderRadius.circular(4),
         ),
       ),
     );
