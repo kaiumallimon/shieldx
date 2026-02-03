@@ -3,10 +3,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'dart:convert';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_edit_dialog.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/services/_vault_encryption_service.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/utils/_vault_item_helpers.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_info_card.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_password_card.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_notes_card.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_metadata_card.dart';
 import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
 import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
 
@@ -26,12 +31,11 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
   bool _isDeleting = false;
   late VaultItem _currentItem;
 
-  // TODO: Decrypt payload properly
+  // Decrypted payload data
   String? _decryptedUsername;
   String? _decryptedEmail;
-  String? _decryptedPassword;
+  String? _actualPassword;
   String? _decryptedNotes;
-  String? _actualPassword; // Store the actual password separately
 
   @override
   void initState() {
@@ -48,39 +52,41 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
 
   void _loadDecryptedData() {
     try {
-      // Decrypt the payload - currently using base64 decoding
-      // TODO: Implement proper encryption with user's master key
-      final decryptedBytes = base64Decode(_currentItem.encryptedPayload);
-      final decryptedString = utf8.decode(decryptedBytes);
-      final payloadJson = jsonDecode(decryptedString) as Map<String, dynamic>;
+      // Decrypt the payload using encryption service
+      final payload = VaultEncryptionService.decryptPayload(
+        _currentItem.encryptedPayload,
+      );
 
-      final payload = VaultItemPayload.fromJson(payloadJson);
-
-      setState(() {
-        _decryptedUsername = payload.username;
-        _decryptedEmail = payload.email;
-        _actualPassword = payload.password;
-        _decryptedPassword = payload.password != null ? '••••••••••••' : null;
-        _decryptedNotes = payload.notes;
-      });
-    } catch (e) {
-      // If decryption fails, show error
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error decrypting data: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+      if (payload != null) {
+        setState(() {
+          _decryptedUsername = payload.username;
+          _decryptedEmail = payload.email;
+          _actualPassword = payload.password;
+          _decryptedNotes = payload.notes;
+        });
+      } else {
+        _handleDecryptionError('Failed to decrypt payload');
       }
-      setState(() {
-        _decryptedUsername = null;
-        _decryptedEmail = null;
-        _actualPassword = null;
-        _decryptedPassword = null;
-        _decryptedNotes = _currentItem.notesPreview;
-      });
+    } catch (e) {
+      _handleDecryptionError(e.toString());
     }
+  }
+
+  void _handleDecryptionError(String error) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error decrypting data: $error'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+    setState(() {
+      _decryptedUsername = null;
+      _decryptedEmail = null;
+      _actualPassword = null;
+      _decryptedNotes = _currentItem.notesPreview;
+    });
   }
 
   Future<void> _toggleFavorite() async {
@@ -228,13 +234,17 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  _getCategoryIcon(_currentItem.category),
+                                  VaultItemHelpers.getCategoryIcon(
+                                    _currentItem.category,
+                                  ),
                                   size: 16,
                                   color: theme.colorScheme.onPrimaryContainer,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  _getCategoryName(_currentItem.category),
+                                  VaultItemHelpers.getCategoryName(
+                                    _currentItem.category,
+                                  ),
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: theme.colorScheme.onPrimaryContainer,
                                     fontWeight: FontWeight.w600,
@@ -250,21 +260,26 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: _getHealthColor(
+                              color: VaultItemHelpers.getHealthColor(
+                                context,
                                 _currentItem.passwordHealth,
                               ).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: _getHealthColor(
+                                color: VaultItemHelpers.getHealthColor(
+                                  context,
                                   _currentItem.passwordHealth,
                                 ),
                                 width: 1,
                               ),
                             ),
                             child: Text(
-                              _getHealthLabel(_currentItem.passwordHealth),
+                              VaultItemHelpers.getHealthLabel(
+                                _currentItem.passwordHealth,
+                              ),
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: _getHealthColor(
+                                color: VaultItemHelpers.getHealthColor(
+                                  context,
                                   _currentItem.passwordHealth,
                                 ),
                                 fontWeight: FontWeight.w600,
@@ -277,8 +292,7 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
 
                       // Website
                       if (_currentItem.websiteUrl != null) ...[
-                        _buildInfoCard(
-                          theme,
+                        VaultInfoCard(
                           icon: CupertinoIcons.globe,
                           label: 'Website',
                           value: _currentItem.websiteUrl!,
@@ -292,8 +306,7 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
 
                       // Username
                       if (_decryptedUsername != null) ...[
-                        _buildInfoCard(
-                          theme,
+                        VaultInfoCard(
                           icon: CupertinoIcons.person,
                           label: 'Username',
                           value: _decryptedUsername!,
@@ -305,8 +318,7 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
 
                       // Email
                       if (_decryptedEmail != null) ...[
-                        _buildInfoCard(
-                          theme,
+                        VaultInfoCard(
                           icon: CupertinoIcons.mail,
                           label: 'Email',
                           value: _decryptedEmail!,
@@ -317,20 +329,28 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
                       ],
 
                       // Password
-                      if (_decryptedPassword != null) ...[
-                        _buildPasswordCard(theme),
+                      if (_actualPassword != null) ...[
+                        VaultPasswordCard(
+                          password: _actualPassword,
+                          isVisible: _isPasswordVisible,
+                          onToggleVisibility: () => setState(
+                            () => _isPasswordVisible = !_isPasswordVisible,
+                          ),
+                          onCopy: () =>
+                              _copyToClipboard(_actualPassword!, 'Password'),
+                        ),
                         const SizedBox(height: 16),
                       ],
 
                       // Notes
                       if (_decryptedNotes != null &&
                           _decryptedNotes!.isNotEmpty) ...[
-                        _buildNotesCard(theme),
+                        VaultNotesCard(notes: _decryptedNotes!),
                         const SizedBox(height: 16),
                       ],
 
                       // Metadata
-                      _buildMetadataCard(theme),
+                      VaultMetadataCard(item: _currentItem),
 
                       const SizedBox(height: 20),
                       // Bottom spacing for footer
@@ -404,298 +424,5 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
         ),
       ),
     );
-  }
-
-  Widget _buildInfoCard(
-    ThemeData theme, {
-    required IconData icon,
-    required String label,
-    required String value,
-    required VoidCallback onCopy,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.secondary.withAlpha(25),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 20, color: theme.colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  value,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(LucideIcons.copy),
-                onPressed: onCopy,
-                color: theme.colorScheme.onSurface.withAlpha(128),
-                tooltip: 'Copy',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPasswordCard(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.secondary.withAlpha(25),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                LucideIcons.key,
-                size: 20,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'Password',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  _isPasswordVisible
-                      ? (_actualPassword ?? '••••••••••••')
-                      : '••••••••••••',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    fontFamily: _isPasswordVisible ? 'monospace' : null,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  _isPasswordVisible
-                      ? CupertinoIcons.eye_slash
-                      : CupertinoIcons.eye,
-                  size: 20,
-                ),
-                onPressed: () =>
-                    setState(() => _isPasswordVisible = !_isPasswordVisible),
-                tooltip: _isPasswordVisible ? 'Hide' : 'Show',
-              ),
-              IconButton(
-                icon: const Icon(CupertinoIcons.doc_on_clipboard, size: 20),
-                onPressed: () =>
-                    _copyToClipboard(_actualPassword ?? '', 'Password'),
-                tooltip: 'Copy',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotesCard(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.secondary.withAlpha(25),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                LucideIcons.file,
-                size: 20,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Notes',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(_decryptedNotes!, style: theme.textTheme.bodyMedium),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMetadataCard(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withAlpha(25),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Information',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildMetadataRow(
-            theme,
-            'Created',
-            _formatDate(_currentItem.createdAt),
-          ),
-          const Divider(height: 24),
-          _buildMetadataRow(
-            theme,
-            'Modified',
-            _formatDate(_currentItem.updatedAt),
-          ),
-          if (_currentItem.lastUsedAt != null) ...[
-            const Divider(height: 24),
-            _buildMetadataRow(
-              theme,
-              'Last Used',
-              _formatDate(_currentItem.lastUsedAt!),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMetadataRow(ThemeData theme, String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays == 0) {
-      return 'Today';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
-  }
-
-  IconData _getCategoryIcon(CredentialCategory category) {
-    switch (category) {
-      case CredentialCategory.login:
-        return CupertinoIcons.lock_shield;
-      case CredentialCategory.creditCard:
-        return CupertinoIcons.creditcard;
-      case CredentialCategory.identity:
-        return CupertinoIcons.person_badge_plus;
-      case CredentialCategory.secureNote:
-        return CupertinoIcons.doc_text;
-      case CredentialCategory.apiKey:
-        return CupertinoIcons.lock_rotation;
-      case CredentialCategory.bankAccount:
-        return CupertinoIcons.building_2_fill;
-      case CredentialCategory.cryptoWallet:
-        return CupertinoIcons.money_dollar_circle;
-      case CredentialCategory.sshKey:
-        return CupertinoIcons.command;
-      case CredentialCategory.license:
-        return CupertinoIcons.doc_on_clipboard;
-      case CredentialCategory.custom:
-        return CupertinoIcons.square_favorites_alt;
-    }
-  }
-
-  String _getCategoryName(CredentialCategory category) {
-    return category.name
-        .replaceAllMapped(RegExp(r'[A-Z]'), (match) => ' ${match.group(0)}')
-        .trim();
-  }
-
-  Color _getHealthColor(PasswordHealthStatus status) {
-    final theme = Theme.of(context);
-    switch (status) {
-      case PasswordHealthStatus.strong:
-        return theme.colorScheme.primary;
-      case PasswordHealthStatus.weak:
-        return theme.colorScheme.tertiary;
-      case PasswordHealthStatus.reused:
-      case PasswordHealthStatus.breached:
-        return theme.colorScheme.error;
-      case PasswordHealthStatus.expired:
-        return theme.colorScheme.error;
-      case PasswordHealthStatus.unknown:
-        return theme.colorScheme.onSurfaceVariant;
-    }
-  }
-
-  String _getHealthLabel(PasswordHealthStatus status) {
-    switch (status) {
-      case PasswordHealthStatus.strong:
-        return 'Strong';
-      case PasswordHealthStatus.weak:
-        return 'Weak';
-      case PasswordHealthStatus.reused:
-        return 'Reused';
-      case PasswordHealthStatus.breached:
-        return 'Breached';
-      case PasswordHealthStatus.expired:
-        return 'Expired';
-      case PasswordHealthStatus.unknown:
-        return 'Unknown';
-    }
   }
 }
