@@ -5,9 +5,24 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 import 'package:shieldx/app/features/dashboard/features/security/cubit/_security_cubit.dart';
 import 'package:shieldx/app/features/dashboard/features/security/cubit/_security_state.dart';
+import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
+import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
 
-class SecurityPage extends StatelessWidget {
+class SecurityPage extends StatefulWidget {
   const SecurityPage({super.key});
+
+  @override
+  State<SecurityPage> createState() => _SecurityPageState();
+}
+
+class _SecurityPageState extends State<SecurityPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +54,8 @@ class SecurityPage extends StatelessWidget {
                   Text(state.message),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => context.read<SecurityCubit>().loadSecurityData(),
+                    onPressed: () =>
+                        context.read<SecurityCubit>().loadSecurityData(),
                     child: const Text('Retry'),
                   ),
                 ],
@@ -54,283 +70,294 @@ class SecurityPage extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: theme.colorScheme.surface,
-          body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // App bar
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              sliver: SliverAppBar(
-                backgroundColor: theme.colorScheme.surface,
-                leading: IconButton(
-                  icon: const Icon(LucideIcons.menu),
-                  onPressed: () {
+          body: Stack(
+            children: [
+              CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // Spacer for app bar
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: MediaQuery.of(context).padding.top + 60,
+                    ),
+                  ),
+                  // Overall security score
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Container(
+                        padding: const EdgeInsets.all(28),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [scoreColor, scoreColor.withOpacity(0.7)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: scoreColor.withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Security Score',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                color: theme.colorScheme.onPrimary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              '${loaded.securityScore}',
+                              style: theme.textTheme.displayLarge?.copyWith(
+                                color: theme.colorScheme.onPrimary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 72,
+                              ),
+                            ),
+                            Text(
+                              scoreLabel,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.colorScheme.onPrimary.withOpacity(
+                                  0.9,
+                                ),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              '${loaded.totalPasswords} passwords analyzed',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onPrimary.withOpacity(
+                                  0.8,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Statistics cards
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildStatCard(
+                              context,
+                              theme,
+                              icon: CupertinoIcons.checkmark_shield,
+                              label: 'Strong',
+                              count: loaded.strongPasswords,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildStatCard(
+                              context,
+                              theme,
+                              icon: CupertinoIcons.exclamationmark_triangle,
+                              label: 'Weak',
+                              count: loaded.weakPasswords,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildStatCard(
+                              context,
+                              theme,
+                              icon: CupertinoIcons.arrow_2_squarepath,
+                              label: 'Reused',
+                              count: loaded.reusedPasswords,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildStatCard(
+                              context,
+                              theme,
+                              icon: CupertinoIcons.xmark_shield,
+                              label: 'Breached',
+                              count: loaded.breachedPasswords,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                  // Security alerts
+                  if (loaded.weakPasswords > 0 ||
+                      loaded.reusedPasswords > 0 ||
+                      loaded.breachedPasswords > 0) ...[
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      sliver: SliverToBoxAdapter(
+                        child: Text(
+                          'Security Alerts',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      sliver: SliverToBoxAdapter(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            children: [
+                              if (loaded.weakPasswords > 0) ...[
+                                _buildAlertTile(
+                                  context,
+                                  theme,
+                                  icon: CupertinoIcons
+                                      .exclamationmark_triangle_fill,
+                                  title: 'Weak Passwords',
+                                  subtitle:
+                                      '${loaded.weakPasswords} passwords need strengthening',
+                                  onTap: () {},
+                                ),
+                                if (loaded.reusedPasswords > 0 ||
+                                    loaded.breachedPasswords > 0)
+                                  _buildDivider(),
+                              ],
+                              if (loaded.reusedPasswords > 0) ...[
+                                _buildAlertTile(
+                                  context,
+                                  theme,
+                                  icon: CupertinoIcons.arrow_2_squarepath,
+                                  title: 'Reused Passwords',
+                                  subtitle:
+                                      '${loaded.reusedPasswords} passwords are reused',
+                                  onTap: () {},
+                                ),
+                                if (loaded.breachedPasswords > 0)
+                                  _buildDivider(),
+                              ],
+                              if (loaded.breachedPasswords > 0)
+                                _buildAlertTile(
+                                  context,
+                                  theme,
+                                  icon: CupertinoIcons.xmark_shield_fill,
+                                  title: 'Breached Passwords',
+                                  subtitle:
+                                      '${loaded.breachedPasswords} passwords compromised',
+                                  onTap: () {},
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                  ],
+                  // Quick actions
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        'Quick Actions',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 1.3,
+                          ),
+                      delegate: SliverChildListDelegate([
+                        _buildActionCard(
+                          context,
+                          theme,
+                          icon: CupertinoIcons.arrow_clockwise_circle,
+                          title: 'Update All Weak',
+                          onTap: () {},
+                        ),
+                        _buildActionCard(
+                          context,
+                          theme,
+                          icon: CupertinoIcons.search_circle,
+                          title: 'Check Breaches',
+                          onTap: () {},
+                        ),
+                        _buildActionCard(
+                          context,
+                          theme,
+                          icon: CupertinoIcons.chart_bar_circle,
+                          title: 'View Report',
+                          onTap: () {},
+                        ),
+                        _buildActionCard(
+                          context,
+                          theme,
+                          icon: CupertinoIcons.arrow_down_circle,
+                          title: 'Export Data',
+                          onTap: () {},
+                        ),
+                      ]),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  // Bottom spacing for floating navigation bar
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 76 + MediaQuery.of(context).padding.bottom + 32,
+                    ),
+                  ),
+                ],
+              ),
+              // ScrollableAppBar
+              ScrollableAppBar(
+                scrollController: _scrollController,
+                leading: CircularActionButton(
+                  scrollController: _scrollController,
+                  icon: LucideIcons.menu,
+                  onTap: () {
                     wrapperScaffoldKey.currentState?.openDrawer();
                   },
                 ),
-                title: Text(
-                  'Security Dashboard',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(CupertinoIcons.refresh),
-                    onPressed: () => context.read<SecurityCubit>().loadSecurityData(),
-                  ),
-                ],
-                pinned: true,
-              ),
-            ),
-            // Overall security score
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Container(
-                  padding: const EdgeInsets.all(28),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        scoreColor,
-                        scoreColor.withOpacity(0.7),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: scoreColor.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Security Score',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '${loaded.securityScore}',
-                        style: theme.textTheme.displayLarge?.copyWith(
-                          color: theme.colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 72,
-                        ),
-                      ),
-                      Text(
-                        scoreLabel,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.onPrimary.withOpacity(0.9),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '${loaded.totalPasswords} passwords analyzed',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onPrimary.withOpacity(0.8),
-                        ),
-                      ),
-                    ],
-                  ),
+                title: 'Security Dashboard',
+                trailing: CircularActionButton(
+                  icon: CupertinoIcons.refresh,
+                  scrollController: _scrollController,
+                  onTap: () =>
+                      context.read<SecurityCubit>().loadSecurityData(),
                 ),
               ),
-            ),
-            // Statistics cards
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        context,
-                        theme,
-                        icon: CupertinoIcons.checkmark_shield,
-                        label: 'Strong',
-                        count: loaded.strongPasswords,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        context,
-                        theme,
-                        icon: CupertinoIcons.exclamationmark_triangle,
-                        label: 'Weak',
-                        count: loaded.weakPasswords,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        context,
-                        theme,
-                        icon: CupertinoIcons.arrow_2_squarepath,
-                        label: 'Reused',
-                        count: loaded.reusedPasswords,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        context,
-                        theme,
-                        icon: CupertinoIcons.xmark_shield,
-                        label: 'Breached',
-                        count: loaded.breachedPasswords,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            // Security alerts
-            if (loaded.weakPasswords > 0 || loaded.reusedPasswords > 0 || loaded.breachedPasswords > 0) ...[
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverToBoxAdapter(
-                  child: Text(
-                    'Security Alerts',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverToBoxAdapter(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      children: [
-                        if (loaded.weakPasswords > 0) ...[
-                          _buildAlertTile(
-                            context,
-                            theme,
-                            icon: CupertinoIcons.exclamationmark_triangle_fill,
-                            title: 'Weak Passwords',
-                            subtitle: '${loaded.weakPasswords} passwords need strengthening',
-                            onTap: () {},
-                          ),
-                          if (loaded.reusedPasswords > 0 || loaded.breachedPasswords > 0)
-                            _buildDivider(),
-                        ],
-                        if (loaded.reusedPasswords > 0) ...[
-                          _buildAlertTile(
-                            context,
-                            theme,
-                            icon: CupertinoIcons.arrow_2_squarepath,
-                            title: 'Reused Passwords',
-                            subtitle: '${loaded.reusedPasswords} passwords are reused',
-                            onTap: () {},
-                          ),
-                          if (loaded.breachedPasswords > 0) _buildDivider(),
-                        ],
-                        if (loaded.breachedPasswords > 0)
-                          _buildAlertTile(
-                            context,
-                            theme,
-                            icon: CupertinoIcons.xmark_shield_fill,
-                            title: 'Breached Passwords',
-                            subtitle: '${loaded.breachedPasswords} passwords compromised',
-                            onTap: () {},
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
-            // Quick actions
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverToBoxAdapter(
-                child: Text(
-                  'Quick Actions',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 1.3,
-                ),
-                delegate: SliverChildListDelegate([
-                  _buildActionCard(
-                    context,
-                    theme,
-                    icon: CupertinoIcons.arrow_clockwise_circle,
-                    title: 'Update All Weak',
-                    onTap: () {},
-                  ),
-                  _buildActionCard(
-                    context,
-                    theme,
-                    icon: CupertinoIcons.search_circle,
-                    title: 'Check Breaches',
-                    onTap: () {},
-                  ),
-                  _buildActionCard(
-                    context,
-                    theme,
-                    icon: CupertinoIcons.chart_bar_circle,
-                    title: 'View Report',
-                    onTap: () {},
-                  ),
-                  _buildActionCard(
-                    context,
-                    theme,
-                    icon: CupertinoIcons.arrow_down_circle,
-                    title: 'Export Data',
-                    onTap: () {},
-                  ),
-                ]),
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 20)),
-            // Bottom spacing for floating navigation bar
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 76 + MediaQuery.of(context).padding.bottom + 32,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
       },
     );
   }
@@ -443,10 +470,7 @@ class SecurityPage extends StatelessWidget {
   Widget _buildDivider() {
     return const Padding(
       padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Divider(
-        height: 1,
-        thickness: 1,
-      ),
+      child: Divider(height: 1, thickness: 1),
     );
   }
 
