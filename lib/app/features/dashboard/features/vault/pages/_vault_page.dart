@@ -6,7 +6,6 @@ import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
-import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_button.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_category_bottom_sheet.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_edit_dialog.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_slogan_section.dart';
