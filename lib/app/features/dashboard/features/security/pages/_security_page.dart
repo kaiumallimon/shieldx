@@ -73,6 +73,7 @@ class _SecurityPageState extends State<SecurityPage> {
           body: Stack(
             children: [
               CustomScrollView(
+                physics: const BouncingScrollPhysics(),
                 controller: _scrollController,
                 slivers: [
                   // Spacer for app bar
