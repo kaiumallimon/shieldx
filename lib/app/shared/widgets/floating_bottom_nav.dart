@@ -128,7 +128,7 @@ class _FloatingBottomNavState extends State<FloatingBottomNav> {
             ),
           // Floating bottom navigation bar with blur
           Positioned(
-            bottom: bottomPadding ,
+            bottom: bottomPadding + 12,
             left: 16,
             right: 16,
             child: Container(
@@ -156,15 +156,37 @@ class _FloatingBottomNavState extends State<FloatingBottomNav> {
                         width: 1.0,
                       ),
                     ),
-                    padding: const EdgeInsets.all(
-                      8
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: List.generate(
-                        _navItems.length,
-                        (index) => _buildNavItem(index, theme),
-                      ),
+                    padding: const EdgeInsets.all(8),
+                    child: Stack(
+                      children: [
+                        // Sliding pill background
+                        AnimatedPositioned(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInOutCubicEmphasized,
+                          left: (MediaQuery.of(context).size.width - 32 - 16) /
+                                _navItems.length * widget.selectedIndex,
+                          child: Container(
+                            width: (MediaQuery.of(context).size.width - 32 - 16) /
+                                   _navItems.length,
+                            height: 64,
+                            padding: const EdgeInsets.all(4),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.secondary.withAlpha(30),
+                                borderRadius: BorderRadius.circular(92),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Nav items
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: List.generate(
+                            _navItems.length,
+                            (index) => _buildNavItem(index, theme),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -181,48 +203,31 @@ class _FloatingBottomNavState extends State<FloatingBottomNav> {
     final navItem = _navItems[index];
 
     return Expanded(
-      child: InkWell(
+      child: GestureDetector(
         onTap: () => widget.onItemTapped(index),
-        borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 5),
+          height: 64,
+          color: Colors.transparent,
           child: Center(
-            child: AnimatedContainer(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(
+                begin: 1.0,
+                end: isSelected ? 1.15 : 1.0,
+              ),
               duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              padding: EdgeInsets.symmetric(
-                horizontal: 22,
-                vertical: 16,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
+              curve: Curves.easeOutBack,
+              builder: (context, scale, child) {
+                return Transform.scale(
+                  scale: scale,
+                  child: Icon(
                     navItem.icon,
-                    size: 24,
+                    size: 26,
                     color: isSelected
-                        ? theme.colorScheme.onPrimary
-                        : theme.colorScheme.onSurface.withOpacity(0.5),
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface.withAlpha(128),
                   ),
-                  // if (isSelected) ...[
-                  //   const SizedBox(height: 4),
-                  //   Text(
-                  //     navItem.label,
-                  //     style: TextStyle(
-                  //       fontSize: 11,
-                  //       fontWeight: FontWeight.w600,
-                  //       color: theme.colorScheme.onPrimary,
-                  //     ),
-                  //   ),
-                  // ],
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),
