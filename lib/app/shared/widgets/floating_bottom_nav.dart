@@ -208,57 +208,69 @@ class _FloatingBottomNavState extends State<FloatingBottomNav>
 
     return GestureDetector(
       onTap: () => _onItemTap(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOutCubic,
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Ripple effect
-            if (isRippling)
-              Container(
-                width: 56 * (1 + _rippleController.value * 0.3),
-                height: 56 * (1 + _rippleController.value * 0.3),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.colorScheme.primary.withOpacity(
-                    0.2 * (1 - _rippleController.value),
-                  ),
-                ),
+      child: TweenAnimationBuilder<double>(
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOutQuint,
+        tween: Tween(begin: 0.0, end: isSelected ? 1.0 : 0.0),
+        builder: (context, value, child) {
+          return Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color.lerp(
+                Colors.transparent,
+                theme.colorScheme.primary,
+                value,
               ),
-            // Icon with improved animation
-            TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.elasticOut,
-              tween: Tween(begin: 0.0, end: isSelected ? 1.0 : 0.0),
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: 0.9 + (0.2 * value),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    transitionBuilder: (child, animation) {
-                      return ScaleTransition(scale: animation, child: child);
-                    },
-                    child: Icon(
-                      isSelected ? icons[index] : outlineIcons[index],
-                      key: ValueKey('${index}_$isSelected'),
-                      color: isSelected
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface.withOpacity(0.6),
-                      size: isSelected ? 26 : 24,
+              boxShadow: value > 0.1
+                  ? [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withOpacity(
+                          0.3 * value,
+                        ),
+                        blurRadius: 12 * value,
+                        offset: Offset(0, 4 * value),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Liquid ripple effect
+                if (isRippling)
+                  Container(
+                    width: 56 * (1 + _rippleController.value * 0.4),
+                    height: 56 * (1 + _rippleController.value * 0.4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: theme.colorScheme.primary.withOpacity(
+                        0.15 * (1 - _rippleController.value),
+                      ),
                     ),
                   ),
-                );
-              },
+                // Icon with liquid color transition
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 400),
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                  child: Icon(
+                    isSelected ? icons[index] : outlineIcons[index],
+                    key: ValueKey('${index}_$isSelected'),
+                    color: Color.lerp(
+                      theme.colorScheme.onSurface.withOpacity(0.6),
+                      theme.colorScheme.onPrimary,
+                      value,
+                    ),
+                    size: 24,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
