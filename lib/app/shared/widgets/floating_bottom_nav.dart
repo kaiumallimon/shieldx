@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class FloatingBottomNav extends StatefulWidget {
   final int selectedIndex;
@@ -23,29 +24,28 @@ class FloatingBottomNav extends StatefulWidget {
 class _FloatingBottomNavState extends State<FloatingBottomNav> {
   bool _showGradient = false;
 
-  final List<NavItem> _navItems = [
-    NavItem(
-      icon: Icons.home_rounded,
-      label: 'Home',
-    ),
-    NavItem(
-      icon: Icons.grid_view_rounded,
-      label: 'Manage',
-    ),
-    NavItem(
-      icon: Icons.vpn_key_rounded,
-      label: 'Generate',
-    ),
-    NavItem(
-      icon: Icons.security_rounded,
-      label: 'Security',
-    ),
-    NavItem(
-      icon: Icons.extension_rounded,
-      label: 'Tools',
-    ),
-  ];
-
+final List<NavItem> _navItems = [
+  NavItem(
+    icon: LucideIcons.home, // Perfect for "Zero-Knowledge" storage
+    label: 'Vault',
+  ),
+  NavItem(
+    icon: LucideIcons.database, // More modern than 'apps' or 'accessibility'
+    label: 'Manage',
+  ),
+  NavItem(
+    icon: LucideIcons.dices, // Creative & modern for a generator (or 'refreshCcw')
+    label: 'Generate',
+  ),
+  NavItem(
+    icon: LucideIcons.shieldCheck, // High trust icon for security audits
+    label: 'Security',
+  ),
+  NavItem(
+    icon: LucideIcons.layoutGrid, // Standard, but fits the stroke-weight of others
+    label: 'Tools',
+  ),
+];
   @override
   void initState() {
     super.initState();
@@ -213,7 +213,7 @@ class _FloatingBottomNavState extends State<FloatingBottomNav> {
                             padding: const EdgeInsets.all(4),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.secondary.withAlpha(30),
+                                color: theme.colorScheme.primary.withAlpha(50),
                                 borderRadius: BorderRadius.circular(92),
                               ),
                             ),
