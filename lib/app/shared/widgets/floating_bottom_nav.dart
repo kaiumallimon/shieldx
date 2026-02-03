@@ -126,9 +126,50 @@ class _FloatingBottomNavState extends State<FloatingBottomNav> {
                 ),
               ),
             ),
+          // Permanent fade below navbar
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Container(
+                height: navHeight + bottomPadding + 60,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      theme.colorScheme.surface.withAlpha(0),
+                      theme.colorScheme.surface.withAlpha(10),
+                      theme.colorScheme.surface.withAlpha(30),
+                      theme.colorScheme.surface.withAlpha(60),
+                      theme.colorScheme.surface.withAlpha(100),
+                      theme.colorScheme.surface.withAlpha(150),
+                      theme.colorScheme.surface.withAlpha(200),
+                      theme.colorScheme.surface.withAlpha(240),
+                      theme.colorScheme.surface,
+                      theme.colorScheme.surface,
+                    ],
+                    stops: const [
+                      0.0,
+                      0.1,
+                      0.2,
+                      0.3,
+                      0.4,
+                      0.5,
+                      0.6,
+                      0.75,
+                      0.85,
+                      1.0,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
           // Floating bottom navigation bar with blur
           Positioned(
-            bottom: bottomPadding + 12,
+            bottom: bottomPadding + 8,
             left: 16,
             right: 16,
             child: Container(
