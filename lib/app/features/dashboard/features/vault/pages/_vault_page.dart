@@ -3,16 +3,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
-import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_category_bottom_sheet.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_edit_dialog.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_slogan_section.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_password_health_card.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_categories_section.dart';
-import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_types_section.dart';
 import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
 import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
 
@@ -86,22 +85,40 @@ class _VaultPageState extends State<VaultPage> {
     }
   }
 
-  // Available password categories for filtering
-  final List<String> _categories = [
-    'All',
-    'Social',
-    'Work',
-    'Finance',
-    'Shopping',
-  ];
+  /// Refresh vault items (for pull to refresh)
+  Future<void> _refreshVaultItems() async {
+    print('Refreshing vault items...');
+    try {
+      final items = await _vaultService.getAllVaultItems();
+      if (mounted) {
+        setState(() {
+          _vaultItems = items;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        toastification.show(
+          context: context,
+          title: Text('Error refreshing passwords: $e'),
+          type: ToastificationType.error,
+          autoCloseDuration: const Duration(seconds: 3),
+        );
+      }
+    }
+  }
 
-  // Available password types for filtering
-  final List<String> _types = [
-    'Login',
-    'API Key',
-    'Credit Card',
-    'Note',
-    'Identity',
+  // Available password categories for filtering
+  final List<CredentialCategory> _categories = [
+    CredentialCategory.login,
+    CredentialCategory.creditCard,
+    CredentialCategory.identity,
+    CredentialCategory.secureNote,
+    CredentialCategory.apiKey,
+    CredentialCategory.bankAccount,
+    CredentialCategory.cryptoWallet,
+    CredentialCategory.sshKey,
+    CredentialCategory.license,
+    CredentialCategory.custom,
   ];
 
   @override
@@ -123,6 +140,10 @@ class _VaultPageState extends State<VaultPage> {
               physics: const BouncingScrollPhysics(),
               controller: _scrollController,
               slivers: [
+                // Pull to refresh
+                CupertinoSliverRefreshControl(
+                  onRefresh: _refreshVaultItems,
+                ),
                 // Top spacing for appbar
                 SliverToBoxAdapter(
                   child: SizedBox(
@@ -135,23 +156,8 @@ class _VaultPageState extends State<VaultPage> {
                 SliverToBoxAdapter(
                   child: VaultCategoriesSection(
                     categories: _categories,
-                    onAddCategory: () => showAddCategoryBottomSheet(
-                      wrapperScaffoldKey.currentState!.context,
-                    ),
                     onCategoryTap: (category) {
-                      // category tap
-                    },
-                  ),
-                ),
-                // Horizontal scrollable types with fade effect
-                SliverToBoxAdapter(
-                  child: VaultTypesSection(
-                    types: _types,
-                    onAddType: () {
-                      // Add type tap - can create similar bottom sheet for types
-                    },
-                    onTypeTap: (type) {
-                      // type tap
+                      context.push('/manage/category/${category.toJson()}');
                     },
                   ),
                 ),
@@ -191,13 +197,15 @@ class _VaultPageState extends State<VaultPage> {
 
                 // Passwords list
                 _isLoading
-                    ? SliverToBoxAdapter(
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(40),
-                            child: CircularProgressIndicator(
-                              color: theme.colorScheme.primary,
-                            ),
+                    ? SliverPadding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => _buildShimmerItem(theme),
+                            childCount: 5,
                           ),
                         ),
                       )
@@ -263,7 +271,7 @@ class _VaultPageState extends State<VaultPage> {
                               );
                             }
                             return _buildPasswordItem(theme, _vaultItems[index]);
-                          }, childCount: _vaultItems.length),
+                          }, childCount: _vaultItems.length > 10 ? 10 : _vaultItems.length),
                         ),
                       ),
                 // Bottom spacing for floating navigation bar
@@ -291,7 +299,7 @@ class _VaultPageState extends State<VaultPage> {
                 scrollController: _scrollController,
                 icon: CupertinoIcons.add,
                 onTap: () async {
-                  final result = await showVaultAddEditDialog(context);
+                  final result = await showVaultAddEditDialog(wrapperScaffoldKey.currentState!.context);
                   if (result == true && mounted) {
                     // Password added successfully - reload data
                     _loadVaultItems();
@@ -305,81 +313,167 @@ class _VaultPageState extends State<VaultPage> {
     );
   }
 
-  Widget _buildPasswordItem(ThemeData theme, VaultItem item) {
+  /// Sanitize URL to get domain for brandfetch
+
+  Widget _buildShimmerItem(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: ListTile(
-        onTap: () async {
-          final result = await context.push('/vault/item/${item.id}', extra: item);
-          // If item was deleted, reload the list
-          if (result == true && mounted) {
-            _loadVaultItems();
-          }
-        },
-        leading: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
+      child: Shimmer.fromColors(
+        baseColor: theme.colorScheme.secondary.withAlpha(25),
+        highlightColor: theme.colorScheme.secondary.withAlpha(100),
+        child: ListTile(
+          leading: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-          child: Icon(
-            _getCategoryIcon(item.category),
-            color: theme.colorScheme.onPrimaryContainer,
-            size: 24,
+          title: Container(
+            height: 16,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          subtitle: Container(
+            height: 12,
+            width: 150,
+            margin: const EdgeInsets.only(top: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          trailing: Container(
+            width: 60,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         ),
-        title: Text(
-          item.title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: item.websiteUrl != null
-            ? Text(
-                item.websiteUrl!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
+  Widget _buildPasswordItem(ThemeData theme, VaultItem item) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      onTap: () async {
+        final result = await context.push('/vault/item/${item.id}', extra: item);
+        // If item was deleted, reload the list
+        if (result == true && mounted) {
+          _loadVaultItems();
+        }
+      },
+      leading: item.iconUrl != null
+          ? SizedBox(
+              width: 56,
+              height: 56,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: theme.colorScheme.secondary.withAlpha(50),
+                    width: 2,
+                  ),
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              )
-            : null,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (item.isFavorite)
-              Icon(CupertinoIcons.star_fill, color: Colors.amber, size: 20),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 4,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    item.iconUrl!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 56,
+                      height: 56,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer.withAlpha(50),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        _getCategoryIcon(item.category),
+                        color: theme.colorScheme.onPrimaryContainer,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
               ),
+            )
+          : Container(
+              width: 56,
+              height: 56,
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _getHealthColor(
-                  item.passwordHealth,
-                ).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: _getHealthColor(item.passwordHealth),
-                  width: 1,
+                  color: theme.colorScheme.secondary.withAlpha(50),
+                  width: 1.5,
                 ),
               ),
-              child: Text(
-                _getHealthLabel(item.passwordHealth),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: _getHealthColor(item.passwordHealth),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 10,
-                ),
+              child: Icon(
+                _getCategoryIcon(item.category),
+                color: theme.colorScheme.primary,
+                size: 30,
               ),
             ),
-          ],
+      title: Text(
+        item.title,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
         ),
+      ),
+      subtitle: item.websiteUrl != null
+          ? Text(
+              item.websiteUrl!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )
+          : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (item.isFavorite)
+            Icon(LucideIcons.star, color: theme.colorScheme.primary, size: 20),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: _getHealthColor(
+                item.passwordHealth,
+              ).withAlpha(25),
+              borderRadius: BorderRadius.circular(50),
+              border: Border.all(
+                color: _getHealthColor(item.passwordHealth),
+                width: 1,
+              ),
+            ),
+            child: Text(
+              _getHealthLabel(item.passwordHealth),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: _getHealthColor(item.passwordHealth),
+                fontWeight: FontWeight.w600,
+                fontSize: 10,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

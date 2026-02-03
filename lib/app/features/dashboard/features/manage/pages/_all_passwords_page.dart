@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:shieldx/app/data/repositories/offline_vault_repository.dart';
-import 'package:shieldx/app/data/local/local_database.dart';
-import 'package:shieldx/app/data/local/local_vault_repository.dart';
-import 'package:shieldx/app/core/services/isolate_encryption_service.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
+import 'package:shieldx/app/data/services/supabase_vault_service.dart';
+import 'package:toastification/toastification.dart';
 
 class AllPasswordsPage extends StatefulWidget {
   const AllPasswordsPage({super.key});
@@ -20,10 +18,10 @@ class AllPasswordsPage extends StatefulWidget {
 
 class _AllPasswordsPageState extends State<AllPasswordsPage> {
   final ScrollController _scrollController = ScrollController();
+  final SupabaseVaultService _vaultService = SupabaseVaultService();
   String _searchQuery = '';
   String _sortBy = 'recent'; // recent, name, category
 
-  late final OfflineVaultRepository _vaultRepository;
   List<VaultItem> _passwords = [];
   bool _isLoading = true;
   String? _error;
@@ -31,7 +29,7 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
   @override
   void initState() {
     super.initState();
-    _initRepository();
+    _loadPasswords();
   }
 
   @override
@@ -40,51 +38,52 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
     super.dispose();
   }
 
-  Future<void> _initRepository() async {
+  Future<void> _loadPasswords() async {
+    setState(() => _isLoading = true);
     try {
-      final localDb = LocalDatabase();
-      final localVaultRepo = LocalVaultRepository(localDb);
-      final isolateEncryption = IsolateEncryptionService();
-
-      _vaultRepository = OfflineVaultRepository(
-        localRepo: localVaultRepo,
-        encryptionService: isolateEncryption,
-      );
-
-      await _loadPasswords();
+      final items = await _vaultService.getAllVaultItems();
+      if (mounted) {
+        setState(() {
+          _passwords = items;
+          _isLoading = false;
+          _error = null;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+        toastification.show(
+          context: context,
+          title: Text('Error loading passwords: $e'),
+          type: ToastificationType.error,
+          autoCloseDuration: const Duration(seconds: 3),
+        );
+      }
     }
   }
 
-  Future<void> _loadPasswords() async {
+  /// Refresh passwords (for pull to refresh)
+  Future<void> _refreshPasswords() async {
     try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      // Get current user ID from Supabase
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) {
-        throw Exception('User not authenticated');
+      final items = await _vaultService.getAllVaultItems();
+      if (mounted) {
+        setState(() {
+          _passwords = items;
+          _error = null;
+        });
       }
-
-      // Fetch all vault items
-      final items = await _vaultRepository.getAllVaultItems(userId);
-
-      setState(() {
-        _passwords = items;
-        _isLoading = false;
-      });
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        toastification.show(
+          context: context,
+          title: Text('Error refreshing passwords: $e'),
+          type: ToastificationType.error,
+          autoCloseDuration: const Duration(seconds: 3),
+        );
+      }
     }
   }
 
@@ -117,6 +116,7 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
     final theme = Theme.of(context);
     final windowSize = MediaQuery.of(context).size;
     final appBarHeight = windowSize.height * 0.067;
+    final searchBarHeight = 68.0;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -131,18 +131,27 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               slivers: [
-                // Top spacing for appbar
+                // Pull to refresh
+                CupertinoSliverRefreshControl(
+                  onRefresh: _refreshPasswords,
+                ),
+                // Top spacing for appbar and search bar
                 SliverToBoxAdapter(
                   child: SizedBox(
-                    height: appBarHeight + MediaQuery.of(context).padding.top,
+                    height: appBarHeight + MediaQuery.of(context).padding.top + searchBarHeight,
                   ),
                 ),
                 // Content
                 _isLoading
-                    ? SliverFillRemaining(
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: theme.colorScheme.primary,
+                    ? SliverPadding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => _buildShimmerItem(theme),
+                            childCount: 8,
                           ),
                         ),
                       )
@@ -183,82 +192,88 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
                               ),
                             ),
                           )
-                        : SliverToBoxAdapter(
-                            child: Column(
-                              children: [
-                                // Search bar
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                  child: TextField(
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _searchQuery = value;
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: 'Search passwords...',
-                                      prefixIcon: const Icon(LucideIcons.search),
-                                      filled: true,
-                                      fillColor: theme.colorScheme.surfaceContainerHighest,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        : _filteredPasswords.isEmpty
+                            ? SliverFillRemaining(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(40),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          LucideIcons.searchX,
+                                          size: 64,
+                                          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'No passwords found',
+                                          style: theme.textTheme.titleMedium?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          _searchQuery.isNotEmpty
+                                              ? 'Try a different search term'
+                                              : 'Add your first password to get started',
+                                          style: theme.textTheme.bodyMedium?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                                // Passwords list
-                                _filteredPasswords.isEmpty
-                                    ? Padding(
-                                        padding: const EdgeInsets.all(40),
-                                        child: Center(
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                LucideIcons.searchX,
-                                                size: 64,
-                                                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
-                                              ),
-                                              const SizedBox(height: 16),
-                                              Text(
-                                                'No passwords found',
-                                                style: theme.textTheme.titleMedium?.copyWith(
-                                                  color: theme.colorScheme.onSurfaceVariant,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                _searchQuery.isNotEmpty
-                                                    ? 'Try a different search term'
-                                                    : 'Add your first password to get started',
-                                                style: theme.textTheme.bodyMedium?.copyWith(
-                                                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    : Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                        child: Column(
-                                          children: _filteredPasswords
-                                              .map((password) => _buildPasswordCard(context, password))
-                                              .toList(),
-                                        ),
-                                      ),
-                                const SizedBox(height: 20),
-                                // Bottom spacing for floating navigation bar
-                                SizedBox(
-                                  height: 76 + MediaQuery.of(context).padding.bottom + 32,
+                              )
+                            : SliverPadding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                sliver: SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                    (context, index) {
+                                      if (index < _filteredPasswords.length) {
+                                        return _buildPasswordCard(context, _filteredPasswords[index]);
+                                      } else {
+                                        // Bottom spacing for floating navigation bar
+                                        return SizedBox(
+                                          height: 76 + MediaQuery.of(context).padding.bottom + 32,
+                                        );
+                                      }
+                                    },
+                                    childCount: _filteredPasswords.length + 1,
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
               ],
+            ),
+            // Pinned search bar
+            Positioned(
+              top: appBarHeight + MediaQuery.of(context).padding.top,
+              left: 0,
+              right: 0,
+              child: Container(
+                color: theme.colorScheme.surface,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search passwords...',
+                    prefixIcon: const Icon(LucideIcons.search),
+                    filled: true,
+                    fillColor: theme.colorScheme.secondary.withAlpha(25),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+              ),
             ),
             // ScrollableAppBar
             ScrollableAppBar(
@@ -283,110 +298,218 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
     );
   }
 
-  Widget _buildPasswordCard(BuildContext context, VaultItem password) {
-    final theme = Theme.of(context);
-    final healthColor = _getHealthColor(password.passwordHealth);
-
+  Widget _buildShimmerItem(ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            LucideIcons.lock,
-            color: theme.colorScheme.primary,
-            size: 24,
-          ),
-        ),
-        title: Row(
+      child: Shimmer.fromColors(
+        baseColor: theme.colorScheme.secondary.withAlpha(25),
+        highlightColor: theme.colorScheme.secondary.withAlpha(100),
+        child: Row(
           children: [
-            Expanded(
-              child: Text(
-                password.title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-            if (password.isFavorite)
-              Icon(
-                Icons.star,
-                size: 18,
-                color: Colors.amber,
-              ),
-          ],
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            if (password.websiteUrl != null)
-              Text(
-                password.websiteUrl!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    password.category.toJson(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSecondaryContainer,
-                      fontWeight: FontWeight.w500,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 16,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: healthColor,
-                    shape: BoxShape.circle,
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 12,
+                    width: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _getHealthLabel(password.passwordHealth),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: healthColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 60,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ],
         ),
-        trailing: Icon(
-          LucideIcons.chevronRight,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
-        onTap: () {
-          // Navigate to password details page
-        },
       ),
     );
+  }
+
+  Widget _buildPasswordCard(BuildContext context, VaultItem password) {
+    final theme = Theme.of(context);
+    final healthColor = _getHealthColor(password.passwordHealth);
+
+    return GestureDetector(
+      onTap: () {
+        context.push('/vault/item/${password.id}', extra: password);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            // Leading icon/logo
+            password.iconUrl != null
+                ? SizedBox(
+                    width: 56,
+                    height: 56,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        password.iconUrl!,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 56,
+                          height: 56,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            _getCategoryIcon(password.category),
+                            color: theme.colorScheme.onPrimaryContainer,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : Container(
+                    width: 56,
+                    height: 56,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      _getCategoryIcon(password.category),
+                      color: theme.colorScheme.onPrimaryContainer,
+                      size: 24,
+                    ),
+                  ),
+            const SizedBox(width: 16),
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          password.title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (password.isFavorite)
+                        Icon(
+                          CupertinoIcons.star_fill,
+                          color: Colors.amber,
+                          size: 20,
+                        ),
+                    ],
+                  ),
+                  if (password.websiteUrl != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      password.websiteUrl!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Health badge
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: healthColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: healthColor,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                _getHealthLabel(password.passwordHealth),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: healthColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getCategoryIcon(CredentialCategory category) {
+    switch (category) {
+      case CredentialCategory.login:
+        return CupertinoIcons.lock_shield;
+      case CredentialCategory.creditCard:
+        return CupertinoIcons.creditcard;
+      case CredentialCategory.identity:
+        return CupertinoIcons.person_badge_plus;
+      case CredentialCategory.secureNote:
+        return CupertinoIcons.doc_text;
+      case CredentialCategory.apiKey:
+        return CupertinoIcons.lock_rotation;
+      case CredentialCategory.bankAccount:
+        return CupertinoIcons.building_2_fill;
+      case CredentialCategory.cryptoWallet:
+        return CupertinoIcons.money_dollar_circle;
+      case CredentialCategory.sshKey:
+        return CupertinoIcons.command;
+      case CredentialCategory.license:
+        return CupertinoIcons.doc_on_clipboard;
+      case CredentialCategory.custom:
+        return CupertinoIcons.square_favorites_alt;
+    }
   }
 
   String _getHealthLabel(PasswordHealthStatus health) {
@@ -407,19 +530,19 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
   }
 
   Color _getHealthColor(PasswordHealthStatus health) {
+    final theme = Theme.of(context);
     switch (health) {
       case PasswordHealthStatus.strong:
-        return Colors.green;
+        return theme.colorScheme.primary;
       case PasswordHealthStatus.weak:
-        return Colors.orange;
+        return theme.colorScheme.tertiary;
       case PasswordHealthStatus.reused:
-        return Colors.red;
       case PasswordHealthStatus.breached:
-        return Colors.red.shade900;
+        return theme.colorScheme.error;
       case PasswordHealthStatus.expired:
-        return Colors.purple;
-      default:
-        return Colors.grey;
+        return theme.colorScheme.error;
+      case PasswordHealthStatus.unknown:
+        return theme.colorScheme.onSurfaceVariant;
     }
   }
 }

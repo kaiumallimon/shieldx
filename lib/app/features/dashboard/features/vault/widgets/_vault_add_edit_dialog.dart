@@ -5,6 +5,7 @@ import 'package:toastification/toastification.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/core/services/password_generator_service.dart';
@@ -44,13 +45,20 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.initialCategory ?? widget.existingItem?.category ?? CredentialCategory.login;
+    _selectedCategory =
+        widget.initialCategory ??
+        widget.existingItem?.category ??
+        CredentialCategory.login;
     _isFavorite = widget.existingItem?.isFavorite ?? false;
 
     // Initialize controllers with existing data if editing
     _titleController = TextEditingController(text: widget.existingItem?.title);
-    _websiteController = TextEditingController(text: widget.existingItem?.websiteUrl);
-    _notesController = TextEditingController(text: widget.existingItem?.notesPreview);
+    _websiteController = TextEditingController(
+      text: widget.existingItem?.websiteUrl,
+    );
+    _notesController = TextEditingController(
+      text: widget.existingItem?.notesPreview,
+    );
 
     // TODO: Decrypt existing payload if editing
     _usernameController = TextEditingController();
@@ -80,29 +88,48 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
 
       // Create encrypted payload (simplified for now - should use proper encryption)
       final payload = VaultItemPayload(
-        username: _usernameController.text.isEmpty ? null : _usernameController.text,
+        username: _usernameController.text.isEmpty
+            ? null
+            : _usernameController.text,
         email: _emailController.text.isEmpty ? null : _emailController.text,
-        password: _passwordController.text.isEmpty ? null : _passwordController.text,
+        password: _passwordController.text.isEmpty
+            ? null
+            : _passwordController.text,
         notes: _notesController.text.isEmpty ? null : _notesController.text,
       );
 
       // TODO: Properly encrypt payload with user's master key
-      final encryptedPayload = base64Encode(utf8.encode(jsonEncode(payload.toJson())));
-      final nonce = base64Encode(utf8.encode(const Uuid().v4())); // Should be proper nonce
+      final encryptedPayload = base64Encode(
+        utf8.encode(jsonEncode(payload.toJson())),
+      );
+      final nonce = base64Encode(
+        utf8.encode(const Uuid().v4()),
+      ); // Should be proper nonce
 
       final vaultItem = VaultItem(
         id: widget.existingItem?.id ?? const Uuid().v4(),
         userId: userId,
         title: _titleController.text,
         category: _selectedCategory,
-        websiteUrl: _websiteController.text.isEmpty ? null : _websiteController.text,
-        notesPreview: _notesController.text.isEmpty ? null : _notesController.text.substring(0, _notesController.text.length > 100 ? 100 : _notesController.text.length),
+        websiteUrl: _websiteController.text.isEmpty
+            ? null
+            : _websiteController.text,
+        notesPreview: _notesController.text.isEmpty
+            ? null
+            : _notesController.text.substring(
+                0,
+                _notesController.text.length > 100
+                    ? 100
+                    : _notesController.text.length,
+              ),
         encryptedPayload: encryptedPayload,
         nonce: nonce,
         isFavorite: _isFavorite,
         passwordHealth: _passwordController.text.isEmpty
             ? PasswordHealthStatus.unknown
             : _getPasswordHealth(_passwordController.text),
+        iconUrl: _getBrandfetchLogoUrl(_websiteController.text),
+        iconCachedAt: _websiteController.text.isEmpty ? null : DateTime.now(),
         createdAt: widget.existingItem?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
         version: (widget.existingItem?.version ?? 0) + 1,
@@ -118,7 +145,11 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
         Navigator.of(context).pop(true);
         toastification.show(
           context: context,
-          title: Text(widget.existingItem != null ? 'Password updated successfully' : 'Password added successfully'),
+          title: Text(
+            widget.existingItem != null
+                ? 'Password updated successfully'
+                : 'Password added successfully',
+          ),
           type: ToastificationType.success,
           autoCloseDuration: const Duration(seconds: 2),
         );
@@ -138,7 +169,9 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
   }
 
   PasswordHealthStatus _getPasswordHealth(String password) {
-    final strength = PasswordGeneratorService.calculatePasswordStrength(password);
+    final strength = PasswordGeneratorService.calculatePasswordStrength(
+      password,
+    );
     if (strength >= 80) return PasswordHealthStatus.strong;
     if (strength >= 50) return PasswordHealthStatus.weak;
     return PasswordHealthStatus.weak;
@@ -158,252 +191,440 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
     HapticFeedback.mediumImpact();
   }
 
+  /// Sanitize URL to get domain for brandfetch
+  String? _sanitizeUrlForBrandfetch(String? url) {
+    if (url == null || url.isEmpty) return null;
+
+    // Remove protocol
+    String domain = url
+        .replaceAll(RegExp(r'^https?://'), '')
+        .replaceAll(RegExp(r'^www\.'), '');
+
+    // Remove path and query parameters
+    final slashIndex = domain.indexOf('/');
+    if (slashIndex != -1) {
+      domain = domain.substring(0, slashIndex);
+    }
+
+    return domain.isNotEmpty ? domain : null;
+  }
+
+  /// Get brandfetch logo URL
+  String? _getBrandfetchLogoUrl(String? websiteUrl) {
+    final domain = _sanitizeUrlForBrandfetch(websiteUrl);
+    if (domain == null) return null;
+    final apiKey = dotenv.env['BRANDFETCH_API_KEY'] ?? '';
+    return 'https://cdn.brandfetch.io/$domain?c=$apiKey';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Dialog(
-      backgroundColor: theme.colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    widget.existingItem != null ? CupertinoIcons.pencil : CupertinoIcons.add,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    widget.existingItem != null ? 'Edit Password' : 'Add Password',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: Icon(CupertinoIcons.xmark, color: theme.colorScheme.onPrimaryContainer),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Drag handle
 
-            // Form
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.all(20),
+        // Header
+        Container(
+          margin: const EdgeInsets.only(top: 12, bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Category selector
                     Text(
-                      'Category',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+                      widget.existingItem != null
+                          ? 'Edit Password'
+                          : 'Add Password',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: DropdownButtonFormField<CredentialCategory>(
-                        value: _selectedCategory,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        ),
-                        items: CredentialCategory.values.map((category) {
-                          return DropdownMenuItem(
-                            value: category,
-                            child: Row(
-                              children: [
-                                Icon(_getCategoryIcon(category), size: 20),
-                                const SizedBox(width: 12),
-                                Text(_getCategoryName(category)),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _selectedCategory = value);
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Title
-                    _buildTextField(
-                      controller: _titleController,
-                      label: 'Title',
-                      hint: 'e.g., Google Account',
-                      icon: CupertinoIcons.textbox,
-                      validator: (value) => value?.isEmpty ?? true ? 'Title is required' : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Website URL
-                    _buildTextField(
-                      controller: _websiteController,
-                      label: 'Website URL',
-                      hint: 'https://example.com',
-                      icon: CupertinoIcons.globe,
-                      keyboardType: TextInputType.url,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Username
-                    _buildTextField(
-                      controller: _usernameController,
-                      label: 'Username',
-                      hint: 'Enter username',
-                      icon: CupertinoIcons.person,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Email
-                    _buildTextField(
-                      controller: _emailController,
-                      label: 'Email',
-                      hint: 'user@example.com',
-                      icon: CupertinoIcons.mail,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Password
+                    const SizedBox(height: 4),
                     Text(
-                      'Password',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: TextFormField(
-                              controller: _passwordController,
-                              obscureText: !_isPasswordVisible,
-                              decoration: InputDecoration(
-                                hintText: 'Enter password',
-                                prefixIcon: const Icon(CupertinoIcons.lock),
-                                suffixIcon: IconButton(
-                                  icon: Icon(_isPasswordVisible ? CupertinoIcons.eye_slash : CupertinoIcons.eye),
-                                  onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
-                                ),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.secondaryContainer,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: IconButton(
-                            icon: Icon(CupertinoIcons.refresh, color: theme.colorScheme.onSecondaryContainer),
-                            onPressed: _generatePassword,
-                            tooltip: 'Generate password',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Notes
-                    _buildTextField(
-                      controller: _notesController,
-                      label: 'Notes',
-                      hint: 'Add notes (optional)',
-                      icon: CupertinoIcons.doc_text,
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Favorite toggle
-                    Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: SwitchListTile(
-                        value: _isFavorite,
-                        onChanged: (value) => setState(() => _isFavorite = value),
-                        title: const Text('Add to favorites'),
-                        secondary: Icon(
-                          _isFavorite ? CupertinoIcons.star_fill : CupertinoIcons.star,
-                          color: _isFavorite ? Colors.amber : null,
-                        ),
+                      widget.existingItem != null
+                          ? 'Update password details'
+                          : 'Save a new password securely',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withAlpha(180),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-
-            // Actions
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: theme.colorScheme.outlineVariant),
-                ),
+              IconButton(
+                icon: const Icon(CupertinoIcons.xmark_circle_fill),
+                onPressed: () => Navigator.of(context).pop(),
+                iconSize: 28,
+                color: theme.colorScheme.onSurface.withAlpha(100),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // Form
+        Flexible(
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextButton(
-                    onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _isLoading ? null : _saveItem,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  // Category selector
+                  Text(
+                    'Category',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(widget.existingItem != null ? 'Update' : 'Add'),
                   ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withAlpha(120),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: theme.colorScheme.outline.withAlpha(100),
+                        width: 2,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: DropdownButtonFormField<CredentialCategory>(
+                      initialValue: _selectedCategory,
+                      decoration: const InputDecoration(
+                        filled: false,
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                      ),
+                      items: CredentialCategory.values.map((category) {
+                        return DropdownMenuItem(
+                          value: category,
+                          child: Row(
+                            children: [
+                              Icon(_getCategoryIcon(category), size: 20),
+                              const SizedBox(width: 12),
+                              Text(_getCategoryName(category)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _selectedCategory = value);
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Title
+                  _buildTextField(
+                    controller: _titleController,
+                    label: 'Title',
+                    hint: 'e.g., Google Account',
+                    icon: CupertinoIcons.textbox,
+                    validator: (value) =>
+                        value?.isEmpty ?? true ? 'Title is required' : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Website URL with logo preview
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          controller: _websiteController,
+                          label: 'Website URL',
+                          hint: 'https://example.com',
+                          icon: CupertinoIcons.globe,
+                          keyboardType: TextInputType.url,
+                          onChanged: (value) => setState(() {}),
+                        ),
+                      ),
+                      if (_getBrandfetchLogoUrl(_websiteController.text) !=
+                          null)
+                        const SizedBox(width: 12),
+                      if (_getBrandfetchLogoUrl(_websiteController.text) !=
+                          null)
+                        Container(
+                          width: 56,
+                          height: 56,
+                          // margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              _getBrandfetchLogoUrl(_websiteController.text)!,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    CupertinoIcons.globe,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Username
+                  _buildTextField(
+                    controller: _usernameController,
+                    label: 'Username',
+                    hint: 'Enter username',
+                    icon: CupertinoIcons.person,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Email
+                  _buildTextField(
+                    controller: _emailController,
+                    label: 'Email',
+                    hint: 'user@example.com',
+                    icon: CupertinoIcons.mail,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Password
+                  Text(
+                    'Password',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest
+                                .withAlpha(120),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: TextFormField(
+                            controller: _passwordController,
+                            obscureText: !_isPasswordVisible,
+                            style: theme.textTheme.bodyLarge,
+                            decoration: InputDecoration(
+                              hintText: 'Enter password',
+                              filled: false,
+                              hintStyle: TextStyle(
+                                color: theme.colorScheme.onSurface.withAlpha(
+                                  100,
+                                ),
+                              ),
+                              prefixIcon: Icon(
+                                CupertinoIcons.lock,
+                                color: theme.colorScheme.onSurface.withAlpha(
+                                  150,
+                                ),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? CupertinoIcons.eye_slash
+                                      : CupertinoIcons.eye,
+                                  color: theme.colorScheme.onSurface.withAlpha(
+                                    150,
+                                  ),
+                                ),
+                                onPressed: () => setState(
+                                  () =>
+                                      _isPasswordVisible = !_isPasswordVisible,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(
+                                  color: theme.colorScheme.onSurface.withAlpha(
+                                    100,
+                                  ),
+                                  width: 2,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide(
+                                  color: theme.colorScheme.primary,
+                                  width: 2,
+                                ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withAlpha(30),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: theme.colorScheme.primary.withAlpha(120),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            CupertinoIcons.arrow_clockwise,
+                            color: theme.colorScheme.primary,
+                          ),
+                          onPressed: _generatePassword,
+                          tooltip: 'Generate password',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Notes
+                  _buildTextField(
+                    controller: _notesController,
+                    label: 'Notes',
+                    hint: 'Add notes (optional)',
+                    icon: CupertinoIcons.doc_text,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Favorite toggle
+                  Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withAlpha(120),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: theme.colorScheme.outline.withAlpha(100),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: SwitchListTile(
+                      value: _isFavorite,
+                      onChanged: (value) => setState(() => _isFavorite = value),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      title: Text(
+                        'Add to favorites',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      secondary: Icon(
+                        _isFavorite
+                            ? CupertinoIcons.star_fill
+                            : CupertinoIcons.star,
+                        color: _isFavorite
+                            ? Colors.amber
+                            : theme.colorScheme.onSurface.withAlpha(150),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
-          ],
+          ),
         ),
-      ),
+
+        // Actions
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            border: Border(
+              top: BorderSide(
+                color: theme.colorScheme.outline.withAlpha(30),
+                width: 1,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () => Navigator.of(context).pop(),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    side: BorderSide(
+                      color: theme.colorScheme.outline.withAlpha(80),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _saveItem,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              theme.colorScheme.onPrimary,
+                            ),
+                          ),
+                        )
+                      : Text(
+                          widget.existingItem != null
+                              ? 'Update Password'
+                              : 'Add Password',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -415,6 +636,7 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
     TextInputType? keyboardType,
     int maxLines = 1,
     String? Function(String?)? validator,
+    void Function(String)? onChanged,
   }) {
     final theme = Theme.of(context);
     return Column(
@@ -429,19 +651,51 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
+            color: theme.colorScheme.surfaceContainerHighest.withAlpha(120),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: TextFormField(
             controller: controller,
             keyboardType: keyboardType,
             maxLines: maxLines,
             validator: validator,
+            onChanged: onChanged,
+            style: theme.textTheme.bodyLarge,
             decoration: InputDecoration(
               hintText: hint,
-              prefixIcon: Icon(icon),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              filled: false,
+              hintStyle: TextStyle(
+                color: theme.colorScheme.onSurface.withAlpha(100),
+              ),
+              prefixIcon: Icon(
+                icon,
+                color: theme.colorScheme.onSurface.withAlpha(150),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.error,
+                  width: 2,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.onSurface.withAlpha(100),
+                  width: 2,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.primary,
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
           ),
         ),
@@ -506,11 +760,44 @@ Future<bool?> showVaultAddEditDialog(
   VaultItem? existingItem,
   CredentialCategory? initialCategory,
 }) {
-  return showDialog<bool>(
+  return showModalBottomSheet<bool>(
     context: context,
-    builder: (context) => VaultAddEditDialog(
-      existingItem: existingItem,
-      initialCategory: initialCategory,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(50),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(
+              child: VaultAddEditDialog(
+                existingItem: existingItem,
+                initialCategory: initialCategory,
+              ),
+            ),
+          ],
+        ),
+      ),
     ),
   );
 }
