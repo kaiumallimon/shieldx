@@ -280,7 +280,7 @@ class _ManagePageState extends State<ManagePage> {
                       // Bottom spacing for floating navigation bar
                       SliverToBoxAdapter(
                         child: SizedBox(
-                          height: 64 + MediaQuery.of(context).padding.bottom + 32,
+                          height: 76 + MediaQuery.of(context).padding.bottom + 32,
                         ),
                       ),
                     ],

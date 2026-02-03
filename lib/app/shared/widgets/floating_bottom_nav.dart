@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -81,7 +83,7 @@ class _FloatingBottomNavState extends State<FloatingBottomNav>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final navHeight = 64.0;
+    final navHeight = 76.0;
 
     return Positioned(
       bottom: 0,
@@ -156,20 +158,23 @@ class _FloatingBottomNavState extends State<FloatingBottomNav>
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(32),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(32),
-                      border: Border.all(
-                        color: theme.colorScheme.onSurface.withOpacity(0.08),
-                        width: 0.5,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface.withOpacity(0.35),
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(
+                          color: theme.colorScheme.onSurface.withOpacity(0.08),
+                          width: 0.5,
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(5, (index) {
-                        return _buildNavItem(index, theme);
-                      }),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(5, (index) {
+                          return _buildNavItem(index, theme);
+                        }),
+                      ),
                     ),
                   ),
                 ),
@@ -203,14 +208,14 @@ class _FloatingBottomNavState extends State<FloatingBottomNav>
 
     return GestureDetector(
       onTap: () => _onItemTap(index),
-      child: Container(
-        width: 48,
-        height: 48,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOutCubic,
+        width: 56,
+        height: 56,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: isSelected
-              ? theme.colorScheme.primary.withOpacity(0.15)
-              : Colors.transparent,
+          color: isSelected ? theme.colorScheme.primary : Colors.transparent,
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -218,8 +223,8 @@ class _FloatingBottomNavState extends State<FloatingBottomNav>
             // Ripple effect
             if (isRippling)
               Container(
-                width: 48 * (1 + _rippleController.value * 0.3),
-                height: 48 * (1 + _rippleController.value * 0.3),
+                width: 56 * (1 + _rippleController.value * 0.3),
+                height: 56 * (1 + _rippleController.value * 0.3),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: theme.colorScheme.primary.withOpacity(
@@ -227,17 +232,30 @@ class _FloatingBottomNavState extends State<FloatingBottomNav>
                   ),
                 ),
               ),
-            // Icon
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                isSelected ? icons[index] : outlineIcons[index],
-                key: ValueKey('${index}_$isSelected'),
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurface.withOpacity(0.6),
-                size: isSelected ? 24 : 22,
-              ),
+            // Icon with improved animation
+            TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.elasticOut,
+              tween: Tween(begin: 0.0, end: isSelected ? 1.0 : 0.0),
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: 0.9 + (0.2 * value),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) {
+                      return ScaleTransition(scale: animation, child: child);
+                    },
+                    child: Icon(
+                      isSelected ? icons[index] : outlineIcons[index],
+                      key: ValueKey('${index}_$isSelected'),
+                      color: isSelected
+                          ? theme.colorScheme.onPrimary
+                          : theme.colorScheme.onSurface.withOpacity(0.6),
+                      size: isSelected ? 26 : 24,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
