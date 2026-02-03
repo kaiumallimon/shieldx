@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
+import 'package:toastification/toastification.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
@@ -75,11 +76,11 @@ class _VaultPageState extends State<VaultPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading passwords: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
+        toastification.show(
+          context: context,
+          title: Text('Error loading passwords: $e'),
+          type: ToastificationType.error,
+          autoCloseDuration: const Duration(seconds: 3),
         );
       }
     }

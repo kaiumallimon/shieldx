@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:toastification/toastification.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
@@ -115,21 +116,20 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
 
       if (mounted) {
         Navigator.of(context).pop(true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.existingItem != null ? 'Password updated successfully' : 'Password added successfully'),
-            behavior: SnackBarBehavior.floating,
-          ),
+        toastification.show(
+          context: context,
+          title: Text(widget.existingItem != null ? 'Password updated successfully' : 'Password added successfully'),
+          type: ToastificationType.success,
+          autoCloseDuration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            behavior: SnackBarBehavior.floating,
-          ),
+        toastification.show(
+          context: context,
+          title: Text('Error: $e'),
+          type: ToastificationType.error,
+          autoCloseDuration: const Duration(seconds: 3),
         );
       }
     } finally {

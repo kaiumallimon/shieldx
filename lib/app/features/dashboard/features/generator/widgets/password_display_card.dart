@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:toastification/toastification.dart';
 import 'package:shieldx/app/core/services/password_generator_service.dart';
 
 class PasswordDisplayCard extends StatelessWidget {
@@ -94,12 +95,11 @@ class PasswordDisplayCard extends StatelessWidget {
                     if (generatedPassword.isNotEmpty) {
                       Clipboard.setData(ClipboardData(text: generatedPassword));
                       HapticFeedback.mediumImpact();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Password copied!'),
-                          duration: Duration(seconds: 2),
-                          behavior: SnackBarBehavior.floating,
-                        ),
+                      toastification.show(
+                        context: context,
+                        title: const Text('Password copied!'),
+                        type: ToastificationType.success,
+                        autoCloseDuration: const Duration(seconds: 2),
                       );
                     }
                   },

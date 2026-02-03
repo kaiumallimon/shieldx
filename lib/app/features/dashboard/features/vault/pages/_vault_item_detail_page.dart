@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:toastification/toastification.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
@@ -74,11 +75,11 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
 
   void _handleDecryptionError(String error) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error decrypting data: $error'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
+      toastification.show(
+        context: context,
+        title: Text('Error decrypting data: $error'),
+        type: ToastificationType.error,
+        autoCloseDuration: const Duration(seconds: 3),
       );
     }
     setState(() {
@@ -99,11 +100,11 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
       HapticFeedback.mediumImpact();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
+        toastification.show(
+          context: context,
+          title: Text('Error: $e'),
+          type: ToastificationType.error,
+          autoCloseDuration: const Duration(seconds: 3),
         );
       }
     }
@@ -139,21 +140,21 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
         await _supabaseService.deleteVaultItem(_currentItem.id);
         if (mounted) {
           context.pop(true); // Return true to indicate deletion
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Password deleted successfully'),
-              behavior: SnackBarBehavior.floating,
-            ),
+          toastification.show(
+            context: context,
+            title: const Text('Password deleted successfully'),
+            type: ToastificationType.success,
+            autoCloseDuration: const Duration(seconds: 2),
           );
         }
       } catch (e) {
         if (mounted) {
           setState(() => _isDeleting = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: $e'),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
+          toastification.show(
+            context: context,
+            title: Text('Error: $e'),
+            type: ToastificationType.error,
+            autoCloseDuration: const Duration(seconds: 3),
           );
         }
       }
@@ -179,12 +180,11 @@ class _VaultItemDetailPageState extends State<VaultItemDetailPage> {
   void _copyToClipboard(String text, String label) {
     Clipboard.setData(ClipboardData(text: text));
     HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$label copied to clipboard'),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
+    toastification.show(
+      context: context,
+      title: Text('$label copied to clipboard'),
+      type: ToastificationType.success,
+      autoCloseDuration: const Duration(seconds: 2),
     );
   }
 

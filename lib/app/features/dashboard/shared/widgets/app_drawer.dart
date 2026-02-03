@@ -137,10 +137,33 @@ class AppDrawer extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: FilledButton.icon(
                 onPressed: () async {
-                  Navigator.pop(context);
-                  await context.read<LoginCubit>().logout();
-                  if (context.mounted) {
-                    context.go('/auth');
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Log Out'),
+                      content: const Text('Are you sure you want to log out?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Theme.of(context).colorScheme.error,
+                          ),
+                          child: const Text('Log Out'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirmed == true && context.mounted) {
+                    Navigator.pop(context);
+                    await context.read<LoginCubit>().logout();
+                    if (context.mounted) {
+                      context.go('/auth?index=1');
+                    }
                   }
                 },
                 style: FilledButton.styleFrom(

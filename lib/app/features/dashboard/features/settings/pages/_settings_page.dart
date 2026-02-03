@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shieldx/app/features/auth/cubit/_login_cubit.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -290,7 +293,35 @@ class _SettingsPageState extends State<SettingsPage> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               sliver: SliverToBoxAdapter(
                 child: FilledButton.icon(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Log Out'),
+                        content: const Text('Are you sure you want to log out?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Theme.of(context).colorScheme.error,
+                            ),
+                            child: const Text('Log Out'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirmed == true && context.mounted) {
+                      await context.read<LoginCubit>().logout();
+                      if (context.mounted) {
+                        context.go('/auth?index=1');
+                      }
+                    }
+                  },
                   style: FilledButton.styleFrom(
                     backgroundColor: theme.colorScheme.error,
                     foregroundColor: theme.colorScheme.onError,

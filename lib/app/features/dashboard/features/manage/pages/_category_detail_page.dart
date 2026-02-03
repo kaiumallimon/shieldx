@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:toastification/toastification.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_edit_dialog.dart';
@@ -56,11 +57,11 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading passwords: $e'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
+        toastification.show(
+          context: context,
+          title: Text('Error loading passwords: $e'),
+          type: ToastificationType.error,
+          autoCloseDuration: const Duration(seconds: 3),
         );
       }
     }
