@@ -576,8 +576,8 @@ class _ManagePageState extends State<ManagePage> {
 
   Widget _buildShimmerMainCard(ThemeData theme) {
     return Shimmer.fromColors(
-      baseColor: theme.colorScheme.surfaceContainerHighest,
-      highlightColor: theme.colorScheme.surface,
+      baseColor: theme.colorScheme.secondary.withAlpha(25),
+      highlightColor: theme.colorScheme.secondary.withAlpha(50),
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -590,7 +590,7 @@ class _ManagePageState extends State<ManagePage> {
               width: 55,
               height: 55,
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest,
+                color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
@@ -603,7 +603,7 @@ class _ManagePageState extends State<ManagePage> {
                     width: 150,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest,
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -612,7 +612,7 @@ class _ManagePageState extends State<ManagePage> {
                     width: 200,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest,
+                      color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -627,8 +627,8 @@ class _ManagePageState extends State<ManagePage> {
 
   Widget _buildShimmerCategoryCard(ThemeData theme) {
     return Shimmer.fromColors(
-      baseColor: theme.colorScheme.surface,
-      highlightColor: theme.colorScheme.secondary,
+      baseColor: theme.colorScheme.secondary.withAlpha(25),
+      highlightColor: theme.colorScheme.secondary.withAlpha(50),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -672,8 +672,8 @@ class _ManagePageState extends State<ManagePage> {
 
   Widget _buildShimmerTypeCard(ThemeData theme) {
     return Shimmer.fromColors(
-      baseColor: theme.colorScheme.surface,
-      highlightColor: theme.colorScheme.secondary,
+      baseColor: theme.colorScheme.secondary.withAlpha(25),
+      highlightColor: theme.colorScheme.secondary.withAlpha(50),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -724,8 +724,8 @@ class _ManagePageState extends State<ManagePage> {
   Widget _buildShimmerText(ThemeData theme,
       {required double width, required double height}) {
     return Shimmer.fromColors(
-      baseColor: theme.colorScheme.surface,
-      highlightColor: theme.colorScheme.secondary.withAlpha(50),
+      baseColor: theme.colorScheme.secondary.withAlpha(25),
+      highlightColor: theme.colorScheme.secondary.withAlpha(100),
       child: Container(
         width: width,
         height: height,
