@@ -54,11 +54,17 @@ class _CircularActionButtonState extends State<CircularActionButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
       margin: widget.margin ?? const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: widget.backgroundColor ?? theme.colorScheme.surface,
         shape: BoxShape.circle,
+        border:!_showShadow?  Border.all(
+          color: theme.colorScheme.onSurface.withAlpha(20),
+        ):Border.all(
+          color: Colors.transparent,
+        ),
         boxShadow: _showShadow
             ? [
                 BoxShadow(

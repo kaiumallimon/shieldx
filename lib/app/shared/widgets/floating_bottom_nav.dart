@@ -208,69 +208,44 @@ class _FloatingBottomNavState extends State<FloatingBottomNav>
 
     return GestureDetector(
       onTap: () => _onItemTap(index),
-      child: TweenAnimationBuilder<double>(
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOutQuint,
-        tween: Tween(begin: 0.0, end: isSelected ? 1.0 : 0.0),
-        builder: (context, value, child) {
-          return Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color.lerp(
-                Colors.transparent,
-                theme.colorScheme.primary,
-                value,
-              ),
-              boxShadow: value > 0.1
-                  ? [
-                      BoxShadow(
-                        color: theme.colorScheme.primary.withOpacity(
-                          0.3 * value,
-                        ),
-                        blurRadius: 12 * value,
-                        offset: Offset(0, 4 * value),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Liquid ripple effect
-                if (isRippling)
-                  Container(
-                    width: 56 * (1 + _rippleController.value * 0.4),
-                    height: 56 * (1 + _rippleController.value * 0.4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: theme.colorScheme.primary.withOpacity(
-                        0.15 * (1 - _rippleController.value),
-                      ),
-                    ),
-                  ),
-                // Icon with liquid color transition
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 400),
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                  child: Icon(
-                    isSelected ? icons[index] : outlineIcons[index],
-                    key: ValueKey('${index}_$isSelected'),
-                    color: Color.lerp(
-                      theme.colorScheme.onSurface.withOpacity(0.6),
-                      theme.colorScheme.onPrimary,
-                      value,
-                    ),
-                    size: 24,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOutCubic,
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Tap ripple effect
+            if (isRippling)
+              Container(
+                width: 56 * (1 + _rippleController.value * 0.2),
+                height: 56 * (1 + _rippleController.value * 0.2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.colorScheme.primary.withOpacity(
+                    0.2 * (1 - _rippleController.value),
                   ),
                 ),
-              ],
+              ),
+            // Icon
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                isSelected ? icons[index] : outlineIcons[index],
+                key: ValueKey('${index}_$isSelected'),
+                color: isSelected
+                    ? theme.colorScheme.onPrimary
+                    : theme.colorScheme.onSurface.withOpacity(0.7),
+                size: 24,
+              ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
