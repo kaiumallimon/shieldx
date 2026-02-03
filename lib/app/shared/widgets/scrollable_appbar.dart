@@ -113,9 +113,9 @@ class _ScrollableAppBarState extends State<ScrollableAppBar> {
           right: 0,
           child: AbsorbPointer(
             absorbing: false,
-            child: Container(
+            child: SizedBox(
               height: appBarHeight,
-              padding: const EdgeInsets.symmetric(horizontal: 15),
+              // padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Row(
                 mainAxisAlignment: widget.title == null
                     ? MainAxisAlignment.spaceBetween

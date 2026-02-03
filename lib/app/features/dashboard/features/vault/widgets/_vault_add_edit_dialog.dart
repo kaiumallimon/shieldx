@@ -359,28 +359,25 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
                           null)
                         Container(
                           width: 56,
-                        height: 56,
-                        margin: const EdgeInsets.only(bottom: 8),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: theme.colorScheme.outline.withAlpha(100),
-                            width: 1.5,
+                          height: 56,
+                          // margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            _getBrandfetchLogoUrl(_websiteController.text)!,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Icon(
-                              CupertinoIcons.globe,
-                              color: theme.colorScheme.onSurfaceVariant,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              _getBrandfetchLogoUrl(_websiteController.text)!,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                    CupertinoIcons.globe,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
                             ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 16),

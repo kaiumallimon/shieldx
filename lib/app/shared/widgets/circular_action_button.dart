@@ -60,11 +60,9 @@ class _CircularActionButtonState extends State<CircularActionButton> {
       decoration: BoxDecoration(
         color: widget.backgroundColor ?? theme.colorScheme.surface,
         shape: BoxShape.circle,
-        border:!_showShadow?  Border.all(
-          color: theme.colorScheme.onSurface.withAlpha(20),
-        ):Border.all(
-          color: Colors.transparent,
-        ),
+        border: !_showShadow
+            ? Border.all(color: theme.colorScheme.onSurface.withAlpha(20))
+            : Border.all(color: Colors.transparent),
         boxShadow: _showShadow
             ? [
                 BoxShadow(
@@ -75,15 +73,19 @@ class _CircularActionButtonState extends State<CircularActionButton> {
               ]
             : [],
       ),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: Container(
-          padding: widget.padding ?? const EdgeInsets.all(13),
-          child: Icon(
-            widget.icon,
-            color: widget.iconColor ?? theme.colorScheme.onSurface,
-            size: widget.iconSize ?? 20,
-          ),
+      child: ElevatedButton(
+        onPressed: widget.onTap,
+        style: ElevatedButton.styleFrom(
+          shape: const CircleBorder(),
+          padding: widget.padding ?? const EdgeInsets.all(12),
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          elevation: 0,
+        ),
+        child: Icon(
+          widget.icon,
+          color: widget.iconColor ?? theme.colorScheme.onSurface,
+          size: widget.iconSize ?? 20,
         ),
       ),
     );
