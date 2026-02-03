@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'shared/widgets/app_drawer.dart';
+import '../../shared/widgets/floating_bottom_nav.dart';
 
 final wrapperScaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -14,6 +15,14 @@ class WrapperPage extends StatefulWidget {
 }
 
 class _WrapperPageState extends State<WrapperPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   int _getSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
     switch (location) {
@@ -61,60 +70,27 @@ class _WrapperPageState extends State<WrapperPage> {
       SystemUiOverlayStyle(
         statusBarColor: theme.colorScheme.surface,
         statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: theme.colorScheme.surface,
+        systemNavigationBarColor: Colors.transparent,
         systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.transparent,
       ),
     );
 
     return Scaffold(
       key: wrapperScaffoldKey,
       drawer: const AppDrawer(),
-      body: widget.child,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: theme.colorScheme.onSurface.withAlpha(20),
-              width: 1,
-            ),
+      extendBody: true,
+      body: Stack(
+        children: [
+          // Main content
+          widget.child,
+          // Floating bottom navigation
+          FloatingBottomNav(
+            selectedIndex: selectedIndex,
+            onItemTapped: _onItemTapped,
+            scrollController: _scrollController,
           ),
-        ),
-        child: NavigationBar(
-          selectedIndex: selectedIndex,
-          onDestinationSelected: _onItemTapped,
-          backgroundColor: theme.colorScheme.surface,
-          indicatorColor: theme.colorScheme.primary,
-          shadowColor: Colors.transparent,
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard),
-              label: 'Vault',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.category_outlined),
-              selectedIcon: Icon(Icons.category),
-              label: 'Manage',
-            ),
-
-            NavigationDestination(
-              icon: Icon(Icons.vpn_key_outlined),
-              selectedIcon: Icon(Icons.vpn_key),
-              label: 'Generator',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.shield_outlined),
-              selectedIcon: Icon(Icons.shield),
-              label: 'Security',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.build_outlined),
-              selectedIcon: Icon(Icons.build),
-              label: 'Tools',
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

@@ -121,6 +121,7 @@ class _VaultPageState extends State<VaultPage> {
             ),
             // Scrollable content
             CustomScrollView(
+              physics: const BouncingScrollPhysics(),
               controller: _scrollController,
               slivers: [
                 // Top spacing for appbar
@@ -241,7 +242,14 @@ class _VaultPageState extends State<VaultPage> {
                         return _buildPasswordItem(theme, item);
                       }, childCount: _vaultItems.length),
                     ),
-                  ),              ],
+                  ),
+                // Bottom spacing for floating navigation bar
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 64 + MediaQuery.of(context).padding.bottom + 32,
+                  ),
+                ),
+              ],
             ),
             // ScrollableAppBar
             ScrollableAppBar(

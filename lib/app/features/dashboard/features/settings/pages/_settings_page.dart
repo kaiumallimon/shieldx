@@ -302,6 +302,12 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 20)),
+            // Bottom spacing for floating navigation bar
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 64 + MediaQuery.of(context).padding.bottom + 32,
+              ),
+            ),
           ],
         ),
       ),
