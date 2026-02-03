@@ -119,8 +119,8 @@ class _ManagePageState extends State<ManagePage> {
                           children: [
                             Text(
                               'Categories',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(height: 15),
@@ -213,8 +213,8 @@ class _ManagePageState extends State<ManagePage> {
                           children: [
                             Text(
                               'Password Types',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(height: 15),
@@ -364,9 +364,8 @@ class _ManagePageState extends State<ManagePage> {
               ),
             ),
             Icon(
-              Icons.chevron_right,
+              LucideIcons.chevronRight,
               color: theme.colorScheme.onSurface.withAlpha(50),
-              size: 32,
             ),
           ],
         ),
@@ -389,14 +388,13 @@ class _ManagePageState extends State<ManagePage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          border: Border.all(color: color.withOpacity(0.3), width: 2),
+          color: theme.colorScheme.secondary.withAlpha(25),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 36, color: color),
+            Icon(icon, size: 36, color: theme.colorScheme.secondary),
             const SizedBox(height: 8),
             Text(
               title,
@@ -434,7 +432,7 @@ class _ManagePageState extends State<ManagePage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest,
+          color: theme.colorScheme.secondary.withAlpha(25),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -442,10 +440,10 @@ class _ManagePageState extends State<ManagePage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
+                color: theme.colorScheme.secondary,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: theme.colorScheme.primary, size: 24),
+              child: Icon(icon, color: theme.colorScheme.onSecondary, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -462,15 +460,15 @@ class _ManagePageState extends State<ManagePage> {
                   Text(
                     '$count items',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: theme.colorScheme.onSurface.withAlpha(200),
                     ),
                   ),
                 ],
               ),
             ),
             Icon(
-              Icons.chevron_right,
-              color: theme.colorScheme.onSurfaceVariant,
+              LucideIcons.chevronRight,
+              color: theme.colorScheme.onSurface.withAlpha(50),
             ),
           ],
         ),
