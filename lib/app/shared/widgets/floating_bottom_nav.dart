@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -21,22 +20,35 @@ class FloatingBottomNav extends StatefulWidget {
   State<FloatingBottomNav> createState() => _FloatingBottomNavState();
 }
 
-class _FloatingBottomNavState extends State<FloatingBottomNav>
-    with TickerProviderStateMixin {
+class _FloatingBottomNavState extends State<FloatingBottomNav> {
   bool _showGradient = false;
-  late AnimationController _rippleController;
-  int? _rippleIndex;
+
+  final List<NavItem> _navItems = [
+    NavItem(
+      icon: Icons.home_rounded,
+      label: 'Home',
+    ),
+    NavItem(
+      icon: Icons.grid_view_rounded,
+      label: 'Manage',
+    ),
+    NavItem(
+      icon: Icons.vpn_key_rounded,
+      label: 'Generate',
+    ),
+    NavItem(
+      icon: Icons.security_rounded,
+      label: 'Security',
+    ),
+    NavItem(
+      icon: Icons.extension_rounded,
+      label: 'Tools',
+    ),
+  ];
 
   @override
   void initState() {
     super.initState();
-
-    _rippleController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-
-    // Listen to scroll controller if provided
     if (widget.scrollController != null && widget.showGradientOnScroll) {
       widget.scrollController!.addListener(_onScroll);
     }
@@ -47,7 +59,6 @@ class _FloatingBottomNavState extends State<FloatingBottomNav>
     if (widget.scrollController != null && widget.showGradientOnScroll) {
       widget.scrollController!.removeListener(_onScroll);
     }
-    _rippleController.dispose();
     super.dispose();
   }
 
@@ -62,44 +73,26 @@ class _FloatingBottomNavState extends State<FloatingBottomNav>
     }
   }
 
-  void _onItemTap(int index) async {
-    setState(() {
-      _rippleIndex = index;
-    });
-
-    _rippleController.forward().then((_) {
-      _rippleController.reset();
-      setState(() {
-        _rippleIndex = null;
-      });
-    });
-
-    // Small delay for visual feedback
-    await Future.delayed(const Duration(milliseconds: 50));
-    widget.onItemTapped(index);
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final navHeight = 76.0;
+    final navHeight = 72.0;
 
     return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
-      child: IgnorePointer(
-        ignoring: false,
-        child: Stack(
-          children: [
-            // Gradient background fade (like ScrollableAppBar)
-            if (widget.showGradientOnScroll)
-              AnimatedOpacity(
-                opacity: _showGradient ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 200),
+      child: Stack(
+        children: [
+          // Gradient background fade (like ScrollableAppBar)
+          if (widget.showGradientOnScroll)
+            AnimatedOpacity(
+              opacity: _showGradient ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 200),
+              child: IgnorePointer(
                 child: Container(
-                  height: navHeight + bottomPadding + 60,
+                  height: navHeight + bottomPadding + 100,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
@@ -132,121 +125,118 @@ class _FloatingBottomNavState extends State<FloatingBottomNav>
                   ),
                 ),
               ),
-            // Floating navigation bar
-            Positioned(
-              bottom: bottomPadding + 5,
-              left: 20,
-              right: 20,
-              child: Container(
-                height: navHeight,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.colorScheme.onSurface.withAlpha(15),
-                      offset: const Offset(0, 8),
-                      blurRadius: 32,
-                      spreadRadius: 0,
-                    ),
-                    BoxShadow(
-                      color: theme.colorScheme.onSurface.withAlpha(5),
-                      offset: const Offset(0, 2),
-                      blurRadius: 8,
-                      spreadRadius: 0,
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(32),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withOpacity(0.35),
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(
-                          color: theme.colorScheme.onSurface.withOpacity(0.08),
-                          width: 0.5,
-                        ),
+            ),
+          // Floating bottom navigation bar with blur
+          Positioned(
+            bottom: bottomPadding ,
+            left: 16,
+            right: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(100),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.onSurface.withAlpha(20),
+                    offset: const Offset(0, 8),
+                    blurRadius: 24,
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(100),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 13.0, sigmaY: 13.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: theme.scaffoldBackgroundColor.withAlpha(100),
+                      borderRadius: BorderRadius.circular(100),
+                      border: Border.all(
+                        color: theme.colorScheme.onSurface.withAlpha(20),
+                        width: 1.0,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(5, (index) {
-                          return _buildNavItem(index, theme);
-                        }),
+                    ),
+                    padding: const EdgeInsets.all(
+                      8
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(
+                        _navItems.length,
+                        (index) => _buildNavItem(index, theme),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildNavItem(int index, ThemeData theme) {
     final isSelected = widget.selectedIndex == index;
-    final isRippling = _rippleIndex == index;
+    final navItem = _navItems[index];
 
-    final icons = [
-      CupertinoIcons.house_fill,
-      CupertinoIcons.square_grid_2x2_fill,
-      CupertinoIcons.lock_fill,
-      CupertinoIcons.shield_fill,
-      CupertinoIcons.wrench_fill,
-    ];
-
-    final outlineIcons = [
-      CupertinoIcons.house,
-      CupertinoIcons.square_grid_2x2,
-      CupertinoIcons.lock,
-      CupertinoIcons.shield,
-      CupertinoIcons.wrench,
-    ];
-
-    return GestureDetector(
-      onTap: () => _onItemTap(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOutCubic,
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isSelected ? theme.colorScheme.primary : Colors.transparent,
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Tap ripple effect
-            if (isRippling)
-              Container(
-                width: 56 * (1 + _rippleController.value * 0.2),
-                height: 56 * (1 + _rippleController.value * 0.2),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.colorScheme.primary.withOpacity(
-                    0.2 * (1 - _rippleController.value),
-                  ),
-                ),
+    return Expanded(
+      child: InkWell(
+        onTap: () => widget.onItemTapped(index),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Center(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              padding: EdgeInsets.symmetric(
+                horizontal: 22,
+                vertical: 16,
               ),
-            // Icon
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                isSelected ? icons[index] : outlineIcons[index],
-                key: ValueKey('${index}_$isSelected'),
+              decoration: BoxDecoration(
                 color: isSelected
-                    ? theme.colorScheme.onPrimary
-                    : theme.colorScheme.onSurface.withOpacity(0.7),
-                size: 24,
+                    ? theme.colorScheme.primary
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    navItem.icon,
+                    size: 24,
+                    color: isSelected
+                        ? theme.colorScheme.onPrimary
+                        : theme.colorScheme.onSurface.withOpacity(0.5),
+                  ),
+                  // if (isSelected) ...[
+                  //   const SizedBox(height: 4),
+                  //   Text(
+                  //     navItem.label,
+                  //     style: TextStyle(
+                  //       fontSize: 11,
+                  //       fontWeight: FontWeight.w600,
+                  //       color: theme.colorScheme.onPrimary,
+                  //     ),
+                  //   ),
+                  // ],
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+class NavItem {
+  final IconData icon;
+  final String label;
+
+  NavItem({
+    required this.icon,
+    required this.label,
+  });
 }
