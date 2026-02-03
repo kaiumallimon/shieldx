@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
@@ -257,7 +258,7 @@ class _VaultPageState extends State<VaultPage> {
               scrollController: _scrollController,
               leading: CircularActionButton(
                 scrollController: _scrollController,
-                icon: Icons.menu,
+                icon: LucideIcons.menu,
                 onTap: () {
                   wrapperScaffoldKey.currentState?.openDrawer();
                 },

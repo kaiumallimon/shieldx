@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 import 'package:shieldx/app/features/dashboard/features/security/cubit/_security_cubit.dart';
 import 'package:shieldx/app/features/dashboard/features/security/cubit/_security_state.dart';
@@ -62,7 +63,7 @@ class SecurityPage extends StatelessWidget {
               sliver: SliverAppBar(
                 backgroundColor: theme.colorScheme.surface,
                 leading: IconButton(
-                  icon: const Icon(Icons.menu),
+                  icon: const Icon(LucideIcons.menu),
                   onPressed: () {
                     wrapperScaffoldKey.currentState?.openDrawer();
                   },

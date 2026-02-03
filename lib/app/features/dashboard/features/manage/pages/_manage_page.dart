@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/cubit/_manage_cubit.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/cubit/_manage_state.dart';
@@ -291,7 +292,7 @@ class _ManagePageState extends State<ManagePage> {
                   scrollController: _scrollController,
                   leading: CircularActionButton(
                     scrollController: _scrollController,
-                    icon: Icons.menu,
+                    icon: LucideIcons.menu,
                     onTap: () {
                       wrapperScaffoldKey.currentState?.openDrawer();
                     },

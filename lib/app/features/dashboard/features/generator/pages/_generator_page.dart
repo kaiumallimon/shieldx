@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
 import 'package:shieldx/app/core/services/password_generator_service.dart';
 import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
@@ -192,7 +193,7 @@ class _PasswordGeneratorPageState extends State<PasswordGeneratorPage> {
               title: 'Password Generator',
               scrollController: _scrollController,
               leading: CircularActionButton(
-                icon: Icons.menu,
+                icon: LucideIcons.menu,
                 onTap: () {
                   wrapperScaffoldKey.currentState?.openDrawer();
                 },
