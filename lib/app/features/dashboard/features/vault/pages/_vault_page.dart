@@ -117,9 +117,7 @@ class _VaultPageState extends State<VaultPage> {
         child: Stack(
           children: [
             // Background
-            Container(
-              color: theme.colorScheme.surface,
-            ),
+            Container(color: theme.colorScheme.surface),
             // Scrollable content
             CustomScrollView(
               physics: const BouncingScrollPhysics(),
@@ -127,7 +125,9 @@ class _VaultPageState extends State<VaultPage> {
               slivers: [
                 // Top spacing for appbar
                 SliverToBoxAdapter(
-                  child: SizedBox(height: appBarHeight + MediaQuery.of(context).padding.top),
+                  child: SizedBox(
+                    height: appBarHeight + MediaQuery.of(context).padding.top,
+                  ),
                 ),
                 // Welcome slogan section
                 const SliverToBoxAdapter(child: VaultSloganSection()),
@@ -143,107 +143,113 @@ class _VaultPageState extends State<VaultPage> {
                     },
                   ),
                 ),
-            // Horizontal scrollable types with fade effect
-            SliverToBoxAdapter(
-              child: VaultTypesSection(
-                types: _types,
-                onAddType: () {
-                  // Add type tap - can create similar bottom sheet for types
-                },
-                onTypeTap: (type) {
-                  // type tap
-                },
-              ),
-            ),
-            // Password health statistics card
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
+                // Horizontal scrollable types with fade effect
+                SliverToBoxAdapter(
+                  child: VaultTypesSection(
+                    types: _types,
+                    onAddType: () {
+                      // Add type tap - can create similar bottom sheet for types
+                    },
+                    onTypeTap: (type) {
+                      // type tap
+                    },
+                  ),
                 ),
-                child: VaultPasswordHealthCard(
-                  totalPasswords: _vaultItems.length,
-                  safeCount: _vaultItems
-                      .where(
-                        (item) =>
-                            item.passwordHealth == PasswordHealthStatus.strong,
-                      )
-                      .length,
-                  weakCount: _vaultItems
-                      .where(
-                        (item) =>
-                            item.passwordHealth == PasswordHealthStatus.weak,
-                      )
-                      .length,
-                  reusedCount: _vaultItems
-                      .where(
-                        (item) =>
-                            item.passwordHealth == PasswordHealthStatus.reused,
-                      )
-                      .length,
-                ),
-              ),
-            ),
-
-            // Passwords list
-            _isLoading
-                ? SliverToBoxAdapter(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: CircularProgressIndicator(
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                  )
-                : _vaultItems.isEmpty
-                ? SliverToBoxAdapter(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: Column(
-                          children: [
-                            Icon(
-                              CupertinoIcons.lock_shield,
-                              size: 64,
-                              color: theme.colorScheme.onSurfaceVariant
-                                  .withOpacity(0.5),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No passwords yet',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Tap the + button to add your first password',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant
-                                    .withOpacity(0.7),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                : SliverPadding(
+                // Password health statistics card
+                SliverToBoxAdapter(
+                  child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 10,
                     ),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final item = _vaultItems[index];
-                        return _buildPasswordItem(theme, item);
-                      }, childCount: _vaultItems.length),
+                    child: VaultPasswordHealthCard(
+                      totalPasswords: _vaultItems.length,
+                      safeCount: _vaultItems
+                          .where(
+                            (item) =>
+                                item.passwordHealth ==
+                                PasswordHealthStatus.strong,
+                          )
+                          .length,
+                      weakCount: _vaultItems
+                          .where(
+                            (item) =>
+                                item.passwordHealth ==
+                                PasswordHealthStatus.weak,
+                          )
+                          .length,
+                      reusedCount: _vaultItems
+                          .where(
+                            (item) =>
+                                item.passwordHealth ==
+                                PasswordHealthStatus.reused,
+                          )
+                          .length,
                     ),
                   ),
+                ),
+
+                // Passwords list
+                _isLoading
+                    ? SliverToBoxAdapter(
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(40),
+                            child: CircularProgressIndicator(
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      )
+                    : _vaultItems.isEmpty
+                    ? SliverToBoxAdapter(
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(40),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  CupertinoIcons.lock_shield,
+                                  size: 64,
+                                  color: theme.colorScheme.onSurfaceVariant
+                                      .withOpacity(0.5),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No passwords yet',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Tap the + button to add your first password',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant
+                                        .withOpacity(0.7),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    : SliverPadding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate((
+                            context,
+                            index,
+                          ) {
+                            final item = _vaultItems[index];
+                            return _buildPasswordItem(theme, item);
+                          }, childCount: _vaultItems.length),
+                        ),
+                      ),
                 // Bottom spacing for floating navigation bar
                 SliverToBoxAdapter(
                   child: SizedBox(
@@ -276,88 +282,106 @@ class _VaultPageState extends State<VaultPage> {
                   }
                 },
               ),
-            ),          ],
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildPasswordItem(ThemeData theme, VaultItem item) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        onTap: () async {
-          final result = await Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (context) => VaultItemDetailPage(vaultItem: item),
-            ),
-          );
-          if (result == true && mounted) {
-            // Item was deleted, reload list
-            _loadVaultItems();
-          }
-        },
-        leading: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            _getCategoryIcon(item.category),
-            color: theme.colorScheme.onPrimaryContainer,
-            size: 24,
-          ),
-        ),
-        title: Text(
-          item.title,
+    return Column(
+      crossAxisAlignment: .start,
+      mainAxisSize: .min,
+      children: [
+        Text(
+          'Recently Added Passwords',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
-        subtitle: item.websiteUrl != null
-            ? Text(
-                item.websiteUrl!,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+        const SizedBox(height: 8),
+        Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: ListTile(
+            onTap: () async {
+              final result = await Navigator.of(context).push(
+                CupertinoPageRoute(
+                  builder: (context) => VaultItemDetailPage(vaultItem: item),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              )
-            : null,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (item.isFavorite)
-              Icon(CupertinoIcons.star_fill, color: Colors.amber, size: 20),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              );
+              if (result == true && mounted) {
+                // Item was deleted, reload list
+                _loadVaultItems();
+              }
+            },
+            leading: Container(
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: _getHealthColor(item.passwordHealth).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: _getHealthColor(item.passwordHealth),
-                  width: 1,
-                ),
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(
-                _getHealthLabel(item.passwordHealth),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: _getHealthColor(item.passwordHealth),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 10,
-                ),
+              child: Icon(
+                _getCategoryIcon(item.category),
+                color: theme.colorScheme.onPrimaryContainer,
+                size: 24,
               ),
             ),
-          ],
+            title: Text(
+              item.title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            subtitle: item.websiteUrl != null
+                ? Text(
+                    item.websiteUrl!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  )
+                : null,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (item.isFavorite)
+                  Icon(CupertinoIcons.star_fill, color: Colors.amber, size: 20),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getHealthColor(
+                      item.passwordHealth,
+                    ).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _getHealthColor(item.passwordHealth),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    _getHealthLabel(item.passwordHealth),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: _getHealthColor(item.passwordHealth),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 
