@@ -116,6 +116,7 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
     final theme = Theme.of(context);
     final windowSize = MediaQuery.of(context).size;
     final appBarHeight = windowSize.height * 0.067;
+    final searchBarHeight = 68.0;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -134,10 +135,10 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
                 CupertinoSliverRefreshControl(
                   onRefresh: _refreshPasswords,
                 ),
-                // Top spacing for appbar
+                // Top spacing for appbar and search bar
                 SliverToBoxAdapter(
                   child: SizedBox(
-                    height: appBarHeight + MediaQuery.of(context).padding.top,
+                    height: appBarHeight + MediaQuery.of(context).padding.top + searchBarHeight,
                   ),
                 ),
                 // Content
@@ -191,82 +192,88 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
                               ),
                             ),
                           )
-                        : SliverToBoxAdapter(
-                            child: Column(
-                              children: [
-                                // Search bar
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                  child: TextField(
-                                    onChanged: (value) {
-                                      setState(() {
-                                        _searchQuery = value;
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: 'Search passwords...',
-                                      prefixIcon: const Icon(LucideIcons.search),
-                                      filled: true,
-                                      fillColor: theme.colorScheme.surfaceContainerHighest,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        : _filteredPasswords.isEmpty
+                            ? SliverFillRemaining(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(40),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          LucideIcons.searchX,
+                                          size: 64,
+                                          color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'No passwords found',
+                                          style: theme.textTheme.titleMedium?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          _searchQuery.isNotEmpty
+                                              ? 'Try a different search term'
+                                              : 'Add your first password to get started',
+                                          style: theme.textTheme.bodyMedium?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                                // Passwords list
-                                _filteredPasswords.isEmpty
-                                    ? Padding(
-                                        padding: const EdgeInsets.all(40),
-                                        child: Center(
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                LucideIcons.searchX,
-                                                size: 64,
-                                                color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
-                                              ),
-                                              const SizedBox(height: 16),
-                                              Text(
-                                                'No passwords found',
-                                                style: theme.textTheme.titleMedium?.copyWith(
-                                                  color: theme.colorScheme.onSurfaceVariant,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                _searchQuery.isNotEmpty
-                                                    ? 'Try a different search term'
-                                                    : 'Add your first password to get started',
-                                                style: theme.textTheme.bodyMedium?.copyWith(
-                                                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    : Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                        child: Column(
-                                          children: _filteredPasswords
-                                              .map((password) => _buildPasswordCard(context, password))
-                                              .toList(),
-                                        ),
-                                      ),
-                                const SizedBox(height: 20),
-                                // Bottom spacing for floating navigation bar
-                                SizedBox(
-                                  height: 76 + MediaQuery.of(context).padding.bottom + 32,
+                              )
+                            : SliverPadding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                sliver: SliverList(
+                                  delegate: SliverChildBuilderDelegate(
+                                    (context, index) {
+                                      if (index < _filteredPasswords.length) {
+                                        return _buildPasswordCard(context, _filteredPasswords[index]);
+                                      } else {
+                                        // Bottom spacing for floating navigation bar
+                                        return SizedBox(
+                                          height: 76 + MediaQuery.of(context).padding.bottom + 32,
+                                        );
+                                      }
+                                    },
+                                    childCount: _filteredPasswords.length + 1,
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
               ],
+            ),
+            // Pinned search bar
+            Positioned(
+              top: appBarHeight + MediaQuery.of(context).padding.top,
+              left: 0,
+              right: 0,
+              child: Container(
+                color: theme.colorScheme.surface,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search passwords...',
+                    prefixIcon: const Icon(LucideIcons.search),
+                    filled: true,
+                    fillColor: theme.colorScheme.secondary.withAlpha(25),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+              ),
             ),
             // ScrollableAppBar
             ScrollableAppBar(

@@ -381,7 +381,7 @@ class _VaultPageState extends State<VaultPage> {
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: theme.colorScheme.secondary.withAlpha(100),
+                    color: theme.colorScheme.secondary.withAlpha(50),
                     width: 2,
                   ),
                   color: theme.colorScheme.surfaceContainerHighest,
@@ -397,7 +397,7 @@ class _VaultPageState extends State<VaultPage> {
                       height: 56,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer.withAlpha(100),
+                        color: theme.colorScheme.primaryContainer.withAlpha(50),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -417,7 +417,7 @@ class _VaultPageState extends State<VaultPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: theme.colorScheme.secondary.withAlpha(100),
+                  color: theme.colorScheme.secondary.withAlpha(50),
                   width: 1.5,
                 ),
               ),
