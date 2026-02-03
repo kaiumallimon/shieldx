@@ -7,9 +7,15 @@ import 'package:shieldx/app/features/dashboard/features/generator/pages/_generat
 import 'package:shieldx/app/features/dashboard/features/security/pages/_security_page.dart';
 import 'package:shieldx/app/features/dashboard/features/settings/pages/_settings_page.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/pages/_vault_page.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/pages/_vault_item_detail_page.dart';
 import 'package:shieldx/app/features/dashboard/features/tools/pages/_tools_page.dart';
+import 'package:shieldx/app/features/dashboard/features/manage/pages/_manage_page.dart';
+import 'package:shieldx/app/features/dashboard/features/manage/pages/_all_passwords_page.dart';
+import 'package:shieldx/app/features/dashboard/features/manage/pages/_category_detail_page.dart';
+import 'package:shieldx/app/features/dashboard/features/manage/pages/_type_detail_page.dart';
 import 'package:shieldx/app/features/splash/pages/_splash_page.dart';
 import 'package:shieldx/app/features/welcome/pages/_welcome_page.dart';
+import 'package:shieldx/app/data/models/vault_item_model.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -69,12 +75,63 @@ final router = GoRouter(
           },
         ),
         GoRoute(
-          path: '/settings',
+          path: '/manage',
           pageBuilder: (context, state) {
-            return NoTransitionPage(child: const SettingsPage());
+            return NoTransitionPage(child: const ManagePage());
           },
         ),
       ],
+    ),
+
+    // Settings page (outside shell route, accessed via drawer)
+    GoRoute(
+      path: '/settings',
+      pageBuilder: (context, state) =>
+          material3TransitionPage(child: const SettingsPage()),
+    ),
+
+    // Manage sub-pages
+    GoRoute(
+      path: '/manage/all-passwords',
+      pageBuilder: (context, state) =>
+          material3TransitionPage(child: const AllPasswordsPage()),
+    ),
+    GoRoute(
+      path: '/manage/category/:category',
+      pageBuilder: (context, state) {
+        final category = state.pathParameters['category'] ?? '';
+        return material3TransitionPage(
+          child: CategoryDetailPage(category: category),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/manage/type/:type',
+      pageBuilder: (context, state) {
+        final type = state.pathParameters['type'] ?? '';
+        return material3TransitionPage(
+          child: TypeDetailPage(type: type),
+        );
+      },
+    ),
+
+    // Vault item detail page
+    GoRoute(
+      path: '/vault/item/:id',
+      pageBuilder: (context, state) {
+        final item = state.extra as VaultItem?;
+        if (item == null) {
+          // Handle error - item not found
+          return material3TransitionPage(
+            child: const Scaffold(
+              body: Center(child: Text('Item not found')),
+            ),
+          );
+        }
+        return material3TransitionPage(
+          child: VaultItemDetailPage(vaultItem: item),
+        );
+      },
     ),
   ],
 );
