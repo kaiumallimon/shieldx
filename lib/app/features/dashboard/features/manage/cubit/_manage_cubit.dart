@@ -14,20 +14,9 @@ class ManageCubit extends Cubit<ManageState> {
       final total = await _vaultService.getTotalItemsCount();
       final categoryStats = await _vaultService.getCategoryStats();
 
-      // Get all items to count by credential type
-      final allItems = await _vaultService.getAllVaultItems();
-      final typeCounts = <String, int>{
-        'login': allItems.length,
-        'api-key': 0,
-        'credit-card': 0,
-        'note': 0,
-        'identity': 0,
-      };
-
       emit(ManageLoaded(
         totalPasswords: total,
         categoryCounts: categoryStats,
-        typeCounts: typeCounts,
       ));
     } catch (e) {
       emit(ManageError(e.toString()));

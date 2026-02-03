@@ -29,7 +29,6 @@ class _ManagePageState extends State<ManagePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final windowSize = MediaQuery.of(context).size;
 
     return BlocBuilder<ManageCubit, ManageState>(
       builder: (context, state) {
@@ -146,138 +145,102 @@ class _ManagePageState extends State<ManagePage> {
                         delegate: SliverChildListDelegate([
                           _buildCategoryCard(
                             context,
-                            icon: Icons.work_outline,
-                            title: 'Work',
-                            count: loaded.categoryCounts['work'] ?? 0,
+                            icon: CupertinoIcons.lock_shield,
+                            title: 'Login',
+                            count: loaded.categoryCounts['login'] ?? 0,
                             color: theme.colorScheme.primary,
                             onTap: () {
-                              context.push('/manage/category/work');
+                              context.push('/manage/category/login');
                             },
                           ),
                           _buildCategoryCard(
                             context,
-                            icon: Icons.person_outline,
-                            title: 'Personal',
-                            count: loaded.categoryCounts['personal'] ?? 0,
+                            icon: CupertinoIcons.creditcard,
+                            title: 'Credit Card',
+                            count: loaded.categoryCounts['credit_card'] ?? 0,
                             color: theme.colorScheme.secondary,
                             onTap: () {
-                              context.push('/manage/category/personal');
+                              context.push('/manage/category/credit_card');
                             },
                           ),
                           _buildCategoryCard(
                             context,
-                            icon: Icons.public,
-                            title: 'Social',
-                            count: loaded.categoryCounts['social'] ?? 0,
+                            icon: CupertinoIcons.person_badge_plus,
+                            title: 'Identity',
+                            count: loaded.categoryCounts['identity'] ?? 0,
                             color: theme.colorScheme.tertiary,
                             onTap: () {
-                              context.push('/manage/category/social');
+                              context.push('/manage/category/identity');
                             },
                           ),
                           _buildCategoryCard(
                             context,
-                            icon: Icons.account_balance,
-                            title: 'Finance',
-                            count: loaded.categoryCounts['finance'] ?? 0,
+                            icon: CupertinoIcons.doc_text,
+                            title: 'Secure Note',
+                            count: loaded.categoryCounts['secure_note'] ?? 0,
                             color: theme.colorScheme.error,
                             onTap: () {
-                              context.push('/manage/category/finance');
+                              context.push('/manage/category/secure_note');
                             },
                           ),
                           _buildCategoryCard(
                             context,
-                            icon: Icons.shopping_bag_outlined,
-                            title: 'Shopping',
-                            count: loaded.categoryCounts['shopping'] ?? 0,
+                            icon: CupertinoIcons.lock_rotation,
+                            title: 'API Key',
+                            count: loaded.categoryCounts['api_key'] ?? 0,
                             color: theme.colorScheme.primaryContainer,
                             onTap: () {
-                              context.push('/manage/category/shopping');
+                              context.push('/manage/category/api_key');
                             },
                           ),
                           _buildCategoryCard(
                             context,
-                            icon: Icons.add,
-                            title: 'Add Category',
-                            count: null,
+                            icon: CupertinoIcons.building_2_fill,
+                            title: 'Bank Account',
+                            count: loaded.categoryCounts['bank_account'] ?? 0,
+                            color: theme.colorScheme.secondaryContainer,
+                            onTap: () {
+                              context.push('/manage/category/bank_account');
+                            },
+                          ),
+                          _buildCategoryCard(
+                            context,
+                            icon: CupertinoIcons.money_dollar_circle,
+                            title: 'Crypto Wallet',
+                            count: loaded.categoryCounts['crypto_wallet'] ?? 0,
+                            color: theme.colorScheme.tertiaryContainer,
+                            onTap: () {
+                              context.push('/manage/category/crypto_wallet');
+                            },
+                          ),
+                          _buildCategoryCard(
+                            context,
+                            icon: CupertinoIcons.command,
+                            title: 'SSH Key',
+                            count: loaded.categoryCounts['ssh_key'] ?? 0,
+                            color: theme.colorScheme.primary,
+                            onTap: () {
+                              context.push('/manage/category/ssh_key');
+                            },
+                          ),
+                          _buildCategoryCard(
+                            context,
+                            icon: CupertinoIcons.doc_on_clipboard,
+                            title: 'License',
+                            count: loaded.categoryCounts['license'] ?? 0,
                             color: theme.colorScheme.secondary,
                             onTap: () {
-                              // Show add category dialog
+                              context.push('/manage/category/license');
                             },
                           ),
-                        ]),
-                      ),
-                    ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 30)),
-                    // Types section
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      sliver: SliverToBoxAdapter(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Password Types',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 15),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Types list
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      sliver: SliverList(
-                        delegate: SliverChildListDelegate([
-                          _buildTypeCard(
+                          _buildCategoryCard(
                             context,
-                            icon: Icons.login,
-                            title: 'Login Credentials',
-                            count: loaded.typeCounts['login'] ?? 0,
+                            icon: CupertinoIcons.square_favorites_alt,
+                            title: 'Custom',
+                            count: loaded.categoryCounts['custom'] ?? 0,
+                            color: theme.colorScheme.tertiary,
                             onTap: () {
-                              context.push('/manage/type/login');
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _buildTypeCard(
-                            context,
-                            icon: Icons.key,
-                            title: 'API Keys',
-                            count: loaded.typeCounts['api-key'] ?? 0,
-                            onTap: () {
-                              context.push('/manage/type/api-key');
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _buildTypeCard(
-                            context,
-                            icon: Icons.credit_card,
-                            title: 'Credit Cards',
-                            count: loaded.typeCounts['credit-card'] ?? 0,
-                            onTap: () {
-                              context.push('/manage/type/credit-card');
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _buildTypeCard(
-                            context,
-                            icon: Icons.note,
-                            title: 'Secure Notes',
-                            count: loaded.typeCounts['note'] ?? 0,
-                            onTap: () {
-                              context.push('/manage/type/note');
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          _buildTypeCard(
-                            context,
-                            icon: Icons.badge,
-                            title: 'Identity Documents',
-                            count: loaded.typeCounts['identity'] ?? 0,
-                            onTap: () {
-                              context.push('/manage/type/identity');
+                              context.push('/manage/category/custom');
                             },
                           ),
                         ]),
@@ -417,64 +380,6 @@ class _ManagePageState extends State<ManagePage> {
     );
   }
 
-  Widget _buildTypeCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required int count,
-    required VoidCallback onTap,
-  }) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.secondary.withAlpha(25),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.secondary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: theme.colorScheme.onSecondary, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$count items',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withAlpha(200),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              LucideIcons.chevronRight,
-              color: theme.colorScheme.onSurface.withAlpha(50),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildShimmerLoading(BuildContext context) {
     final theme = Theme.of(context);
     final windowSize = MediaQuery.of(context).size;
@@ -526,35 +431,11 @@ class _ManagePageState extends State<ManagePage> {
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => _buildShimmerCategoryCard(theme),
-                      childCount: 6,
+                      childCount: 10,
                     ),
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 30)),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildShimmerText(theme, width: 120, height: 20),
-                        const SizedBox(height: 15),
-                      ],
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _buildShimmerTypeCard(theme),
-                      ),
-                      childCount: 5,
-                    ),
-                  ),
-                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 20)),
               ],
             ),
             ScrollableAppBar(
@@ -662,57 +543,6 @@ class _ManagePageState extends State<ManagePage> {
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildShimmerTypeCard(ThemeData theme) {
-    return Shimmer.fromColors(
-      baseColor: theme.colorScheme.secondary.withAlpha(25),
-      highlightColor: theme.colorScheme.secondary.withAlpha(50),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 150,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    width: 80,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ],
               ),
             ),
           ],
