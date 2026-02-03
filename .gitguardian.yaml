@@ -1,0 +1,20 @@
+version: 2
+
+paths-ignore:
+  - "build/"
+  - "**/build/"
+  - ".env"
+  - ".env.*"
+  - "**/flutter_assets/.env"
+  - "**/intermediates/**"
+
+matches-ignore:
+  - name: BRANDFETCH_API_KEY
+    match: BRANDFETCH_API_KEY
+  - name: Build artifacts
+    match: build/app/intermediates
+
+# Ignore Supabase public anon keys (these are meant to be public)
+# Only service_role keys should be kept secret
+secrets-ignore:
+  - SUPABASE_ANON_KEY
