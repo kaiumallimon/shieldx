@@ -77,7 +77,7 @@ class _CircularActionButtonState extends State<CircularActionButton> {
       ),
       child: GestureDetector(
         onTap: widget.onTap,
-        child: Padding(
+        child: Container(
           padding: widget.padding ?? const EdgeInsets.all(13),
           child: Icon(
             widget.icon,

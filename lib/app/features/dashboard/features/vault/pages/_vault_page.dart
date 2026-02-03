@@ -7,12 +7,10 @@ import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/features/dashboard/_wrapper_page.dart';
-import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_category_bottom_sheet.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_edit_dialog.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_slogan_section.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_password_health_card.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_categories_section.dart';
-import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_types_section.dart';
 import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
 import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
 
@@ -95,15 +93,6 @@ class _VaultPageState extends State<VaultPage> {
     'Shopping',
   ];
 
-  // Available password types for filtering
-  final List<String> _types = [
-    'Login',
-    'API Key',
-    'Credit Card',
-    'Note',
-    'Identity',
-  ];
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -135,23 +124,8 @@ class _VaultPageState extends State<VaultPage> {
                 SliverToBoxAdapter(
                   child: VaultCategoriesSection(
                     categories: _categories,
-                    onAddCategory: () => showAddCategoryBottomSheet(
-                      wrapperScaffoldKey.currentState!.context,
-                    ),
                     onCategoryTap: (category) {
                       // category tap
-                    },
-                  ),
-                ),
-                // Horizontal scrollable types with fade effect
-                SliverToBoxAdapter(
-                  child: VaultTypesSection(
-                    types: _types,
-                    onAddType: () {
-                      // Add type tap - can create similar bottom sheet for types
-                    },
-                    onTypeTap: (type) {
-                      // type tap
                     },
                   ),
                 ),

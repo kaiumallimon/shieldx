@@ -4,16 +4,12 @@ class VaultCategoriesSection extends StatelessWidget {
   /// List of category names to display
   final List<String> categories;
 
-  /// Callback when the add category button is tapped
-  final VoidCallback? onAddCategory;
-
   /// Callback when a category chip is tapped, receives the category name
   final Function(String)? onCategoryTap;
 
   const VaultCategoriesSection({
     super.key,
     required this.categories,
-    this.onAddCategory,
     this.onCategoryTap,
   });
 
@@ -93,23 +89,6 @@ class VaultCategoriesSection extends StatelessWidget {
                     },
                   ),
                 ),
-              ),
-            ),
-          ),
-          // Add category button (circular with icon)
-          GestureDetector(
-            onTap: onAddCategory,
-            child: Container(
-              height: 45,
-              width: 45,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: Icon(
-                Icons.add,
-                color: theme.colorScheme.onPrimary,
               ),
             ),
           ),
