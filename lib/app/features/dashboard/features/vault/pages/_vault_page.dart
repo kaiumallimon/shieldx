@@ -244,8 +244,24 @@ class _VaultPageState extends State<VaultPage> {
                             context,
                             index,
                           ) {
-                            final item = _vaultItems[index];
-                            return _buildPasswordItem(theme, item);
+                            // Show title only before first item
+                            if (index == 0) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Recently Added Passwords',
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _buildPasswordItem(theme, _vaultItems[index]),
+                                ],
+                              );
+                            }
+                            return _buildPasswordItem(theme, _vaultItems[index]);
                           }, childCount: _vaultItems.length),
                         ),
                       ),
@@ -289,90 +305,77 @@ class _VaultPageState extends State<VaultPage> {
   }
 
   Widget _buildPasswordItem(ThemeData theme, VaultItem item) {
-    return Column(
-      crossAxisAlignment: .start,
-      mainAxisSize: .min,
-      children: [
-        Text(
-          'Recently Added Passwords',
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: ListTile(
+        onTap: () {
+          context.push('/vault/item/${item.id}', extra: item);
+        },
+        leading: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            _getCategoryIcon(item.category),
+            color: theme.colorScheme.onPrimaryContainer,
+            size: 24,
+          ),
+        ),
+        title: Text(
+          item.title,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 8),
-        Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: ListTile(
-            onTap: () {
-              context.push('/vault/item/${item.id}', extra: item);
-            },
-            leading: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                _getCategoryIcon(item.category),
-                color: theme.colorScheme.onPrimaryContainer,
-                size: 24,
-              ),
-            ),
-            title: Text(
-              item.title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            subtitle: item.websiteUrl != null
-                ? Text(
-                    item.websiteUrl!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                : null,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (item.isFavorite)
-                  Icon(CupertinoIcons.star_fill, color: Colors.amber, size: 20),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getHealthColor(
-                      item.passwordHealth,
-                    ).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _getHealthColor(item.passwordHealth),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    _getHealthLabel(item.passwordHealth),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: _getHealthColor(item.passwordHealth),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 10,
-                    ),
-                  ),
+        subtitle: item.websiteUrl != null
+            ? Text(
+                item.websiteUrl!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-              ],
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
+            : null,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (item.isFavorite)
+              Icon(CupertinoIcons.star_fill, color: Colors.amber, size: 20),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: _getHealthColor(
+                  item.passwordHealth,
+                ).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _getHealthColor(item.passwordHealth),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                _getHealthLabel(item.passwordHealth),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: _getHealthColor(item.passwordHealth),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
