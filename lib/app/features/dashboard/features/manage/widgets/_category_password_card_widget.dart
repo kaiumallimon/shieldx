@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/utils/_vault_item_helpers.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/widgets/_decrypted_title_widget.dart';
 
 class CategoryPasswordCardWidget extends StatelessWidget {
   final VaultItem item;
@@ -45,8 +46,8 @@ class CategoryPasswordCardWidget extends StatelessWidget {
         title: Row(
           children: [
             Expanded(
-              child: Text(
-                item.title,
+              child: DecryptedTitleWidget(
+                item: item,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),

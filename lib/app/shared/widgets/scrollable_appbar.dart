@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class ScrollableAppBar extends StatefulWidget {
   final String? title;
+  final Widget? titleWidget; // Custom widget for title
   final Widget? leading;
   final Widget? trailing;
   final ScrollController scrollController;
@@ -10,6 +11,7 @@ class ScrollableAppBar extends StatefulWidget {
   const ScrollableAppBar({
     super.key,
     this.title,
+    this.titleWidget,
     this.leading,
     this.trailing,
     required this.scrollController,
@@ -116,13 +118,15 @@ class _ScrollableAppBarState extends State<ScrollableAppBar> {
             child: SizedBox(
               height: appBarHeight,
               child: Row(
-                mainAxisAlignment: widget.title == null
+                mainAxisAlignment: widget.title == null && widget.titleWidget == null
                     ? MainAxisAlignment.spaceBetween
                     : MainAxisAlignment.start,
                 spacing: 8,
                 children: [
                   if (widget.leading != null) widget.leading!,
-                  if (widget.title != null)
+                  if (widget.titleWidget != null)
+                    Expanded(child: widget.titleWidget!)
+                  else if (widget.title != null)
                     Expanded(
                       child: Text(
                         widget.title!,

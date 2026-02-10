@@ -15,7 +15,6 @@ import 'package:shieldx/app/features/dashboard/features/manage/pages/_category_d
 import 'package:shieldx/app/features/dashboard/features/manage/pages/_type_detail_page.dart';
 import 'package:shieldx/app/features/splash/pages/_splash_page.dart';
 import 'package:shieldx/app/features/welcome/pages/_welcome_page.dart';
-import 'package:shieldx/app/data/models/vault_item_model.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -119,9 +118,9 @@ final router = GoRouter(
     GoRoute(
       path: '/vault/item/:id',
       pageBuilder: (context, state) {
-        final item = state.extra as VaultItem?;
-        if (item == null) {
-          // Handle error - item not found
+        final itemId = state.pathParameters['id'];
+        if (itemId == null) {
+          // Handle error - item id not found
           return material3TransitionPage(
             child: const Scaffold(
               body: Center(child: Text('Item not found')),
@@ -129,7 +128,7 @@ final router = GoRouter(
           );
         }
         return material3TransitionPage(
-          child: VaultItemDetailPage(vaultItem: item),
+          child: VaultItemDetailPage(itemId: itemId),
         );
       },
     ),

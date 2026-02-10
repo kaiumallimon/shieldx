@@ -13,6 +13,7 @@ import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_slogan_section.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_password_health_card.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_categories_section.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/widgets/_decrypted_title_widget.dart';
 import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
 import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
 
@@ -58,10 +59,15 @@ class _VaultPageState extends State<VaultPage> {
   /// Set up realtime subscription for vault items
   void _setupRealtimeSubscription() {
     final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) return;
+    if (userId == null) {
+      print('Cannot setup realtime: User not authenticated');
+      return;
+    }
+
+    print('Setting up realtime subscription for user: $userId');
 
     _realtimeSubscription = Supabase.instance.client
-        .channel('vault_items')
+        .channel('vault_items_channel')
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
@@ -72,11 +78,17 @@ class _VaultPageState extends State<VaultPage> {
             value: userId,
           ),
           callback: (payload) {
+            print('Realtime update received: ${payload.eventType}');
             // Reload vault items when any change occurs
             _loadVaultItems();
           },
         )
-        .subscribe();
+        .subscribe((status, error) {
+      print('Realtime subscription status: $status');
+      if (error != null) {
+        print('Realtime subscription error: $error');
+      }
+    });
   }
 
   /// Fetches user session data from storage and updates the UI
@@ -397,12 +409,13 @@ class _VaultPageState extends State<VaultPage> {
   Widget _buildPasswordItem(ThemeData theme, VaultItem item) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      onTap: () async {
-        final result = await context.push('/vault/item/${item.id}', extra: item);
-        // If item was deleted, reload the list
-        if (result == true && mounted) {
-          _loadVaultItems();
-        }
+      onTap: () {
+        context.push('/vault/item/${item.id}').then((result) {
+          // If item was deleted, reload the list
+          if (result == true && mounted) {
+            _loadVaultItems();
+          }
+        });
       },
       leading: item.iconUrl != null
           ? SizedBox(
@@ -457,8 +470,8 @@ class _VaultPageState extends State<VaultPage> {
                 size: 30,
               ),
             ),
-      title: Text(
-        item.title,
+      title: DecryptedTitleWidget(
+        item: item,
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),

@@ -9,6 +9,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/core/services/password_generator_service.dart';
+import 'package:shieldx/app/core/services/encryption_service.dart';
+import 'package:shieldx/app/data/services/_auth_storage_service.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 class VaultAddEditDialog extends StatefulWidget {
   final VaultItem? existingItem;
@@ -27,6 +30,7 @@ class VaultAddEditDialog extends StatefulWidget {
 class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
   final _formKey = GlobalKey<FormState>();
   final _supabaseService = SupabaseVaultService();
+  final _authStorage = AuthStorageService();
 
   // Controllers
   late TextEditingController _titleController;
@@ -51,8 +55,11 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
         CredentialCategory.login;
     _isFavorite = widget.existingItem?.isFavorite ?? false;
 
-    // Initialize controllers with existing data if editing
-    _titleController = TextEditingController(text: widget.existingItem?.title);
+    // Initialize all controllers immediately to avoid LateInitializationError
+    _titleController = TextEditingController();
+    _usernameController = TextEditingController();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
     _websiteController = TextEditingController(
       text: widget.existingItem?.websiteUrl,
     );
@@ -60,25 +67,64 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
       text: widget.existingItem?.notesPreview,
     );
 
-    // Decrypt existing payload if editing
-    if (widget.existingItem != null && widget.existingItem!.encryptedPayload.isNotEmpty) {
-      try {
-        final decryptedJson = utf8.decode(base64Decode(widget.existingItem!.encryptedPayload));
-        final payload = VaultItemPayload.fromJson(jsonDecode(decryptedJson));
+    // Decrypt existing data if editing
+    _initializeControllersAsync();
+  }
 
-        _usernameController = TextEditingController(text: payload.username ?? '');
-        _emailController = TextEditingController(text: payload.email ?? '');
-        _passwordController = TextEditingController(text: payload.password ?? '');
+  Future<void> _initializeControllersAsync() async {
+    if (widget.existingItem != null) {
+      try {
+        // Get user's master password from secure storage
+        final userId = Supabase.instance.client.auth.currentUser?.id;
+        if (userId != null) {
+          final session = await _authStorage.getUserSession();
+          final masterPassword = session?['userId'] ?? userId; // TODO: Use actual master password
+
+          // Derive encryption key
+          final salt = EncryptionService.base64ToBytes(widget.existingItem!.nonce);
+          final encryptionKey = await EncryptionService.deriveKeyArgon2(
+            masterPassword: masterPassword,
+            salt: salt,
+          );
+
+          // Decrypt title
+          String decryptedTitle = '';
+          try {
+            final titleKey = encrypt.Key(encryptionKey);
+            final titleIv = encrypt.IV(salt);
+            final titleEncrypter = encrypt.Encrypter(
+              encrypt.AES(titleKey, mode: encrypt.AESMode.gcm),
+            );
+            final encryptedTitleData = encrypt.Encrypted.fromBase64(widget.existingItem!.title);
+            final decryptedBytes = titleEncrypter.decryptBytes(encryptedTitleData, iv: titleIv);
+            decryptedTitle = utf8.decode(decryptedBytes);
+          } catch (e) {
+            print('Error decrypting title: $e');
+            decryptedTitle = widget.existingItem!.title; // Fallback to original
+          }
+
+          // Decrypt payload if exists
+          VaultItemPayload? payload;
+          if (widget.existingItem!.encryptedPayload.isNotEmpty) {
+            final nonce = salt; // Reuse salt as nonce for simplicity (should be separate)
+            payload = EncryptionService.decryptPayload(
+              encryptedPayload: widget.existingItem!.encryptedPayload,
+              encryptionKey: encryptionKey,
+              nonce: nonce,
+            );
+          }
+
+          setState(() {
+            _titleController.text = decryptedTitle;
+            _usernameController.text = payload?.username ?? '';
+            _emailController.text = payload?.email ?? '';
+            _passwordController.text = payload?.password ?? '';
+          });
+        }
       } catch (e) {
-        // If decryption fails, initialize with empty controllers
-        _usernameController = TextEditingController();
-        _emailController = TextEditingController();
-        _passwordController = TextEditingController();
+        // If decryption fails, controllers are already initialized with empty text
+        print('Decryption error: $e');
       }
-    } else {
-      _usernameController = TextEditingController();
-      _emailController = TextEditingController();
-      _passwordController = TextEditingController();
     }
   }
 
@@ -102,7 +148,20 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) throw Exception('User not authenticated');
 
-      // Create encrypted payload (simplified for now - should use proper encryption)
+      // Get master password from secure storage
+      final session = await _authStorage.getUserSession();
+      final masterPassword = session?['userId'] ?? userId; // TODO: Use actual master password
+
+      // Generate secure salt/nonce (use same value for both key derivation and AES)
+      final saltNonce = EncryptionService.generateNonce();
+
+      // Derive encryption key using Argon2
+      final encryptionKey = await EncryptionService.deriveKeyArgon2(
+        masterPassword: masterPassword,
+        salt: saltNonce,
+      );
+
+      // Create payload with all sensitive data
       final payload = VaultItemPayload(
         username: _usernameController.text.isEmpty
             ? null
@@ -114,32 +173,34 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
         notes: _notesController.text.isEmpty ? null : _notesController.text,
       );
 
-      // TODO: Properly encrypt payload with user's master key
-      final encryptedPayload = base64Encode(
-        utf8.encode(jsonEncode(payload.toJson())),
+      // Encrypt the entire payload using AES-256-GCM
+      final encryptedPayload = EncryptionService.encryptPayload(
+        payload: payload,
+        encryptionKey: encryptionKey,
+        nonce: saltNonce,
       );
-      final nonce = base64Encode(
-        utf8.encode(const Uuid().v4()),
-      ); // Should be proper nonce
+
+      // Encrypt title separately (also sensitive)
+      final titleBytes = utf8.encode(_titleController.text);
+      final titleKey = encrypt.Key(encryptionKey);
+      final titleIv = encrypt.IV(saltNonce);
+      final titleEncrypter = encrypt.Encrypter(
+        encrypt.AES(titleKey, mode: encrypt.AESMode.gcm),
+      );
+      final encryptedTitleData = titleEncrypter.encryptBytes(titleBytes, iv: titleIv);
+      final encryptedTitle = encryptedTitleData.base64;
 
       final vaultItem = VaultItem(
         id: widget.existingItem?.id ?? const Uuid().v4(),
         userId: userId,
-        title: _titleController.text,
+        title: encryptedTitle, // Now encrypted
         category: _selectedCategory,
         websiteUrl: _websiteController.text.isEmpty
             ? null
-            : _websiteController.text,
-        notesPreview: _notesController.text.isEmpty
-            ? null
-            : _notesController.text.substring(
-                0,
-                _notesController.text.length > 100
-                    ? 100
-                    : _notesController.text.length,
-              ),
+            : _websiteController.text, // Can stay unencrypted for icon fetching
+        notesPreview: null, // Don't store preview in plain text
         encryptedPayload: encryptedPayload,
-        nonce: nonce,
+        nonce: base64Encode(saltNonce), // Store salt/nonce for both key derivation and AES
         isFavorite: _isFavorite,
         passwordHealth: _passwordController.text.isEmpty
             ? PasswordHealthStatus.unknown

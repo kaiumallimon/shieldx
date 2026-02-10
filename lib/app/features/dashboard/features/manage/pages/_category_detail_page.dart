@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
 import 'package:shieldx/app/features/dashboard/features/vault/widgets/_vault_add_edit_dialog.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/widgets/_decrypted_title_widget.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/widgets/_category_header_widget.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/widgets/_category_empty_state_widget.dart';
 import 'package:shieldx/app/features/dashboard/features/manage/utils/_category_helpers.dart';
@@ -354,8 +355,8 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                 size: 30,
               ),
             ),
-      title: Text(
-        item.title,
+      title: DecryptedTitleWidget(
+        item: item,
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),

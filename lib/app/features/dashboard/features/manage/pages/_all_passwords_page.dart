@@ -7,6 +7,7 @@ import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/shared/widgets/circular_action_button.dart';
 import 'package:shieldx/app/shared/widgets/scrollable_appbar.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
+import 'package:shieldx/app/features/dashboard/features/vault/widgets/_decrypted_title_widget.dart';
 import 'package:toastification/toastification.dart';
 
 class AllPasswordsPage extends StatefulWidget {
@@ -365,7 +366,7 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
 
     return GestureDetector(
       onTap: () {
-        context.push('/vault/item/${password.id}', extra: password);
+        context.push('/vault/item/${password.id}');
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -426,8 +427,8 @@ class _AllPasswordsPageState extends State<AllPasswordsPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          password.title,
+                        child: DecryptedTitleWidget(
+                          item: password,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
