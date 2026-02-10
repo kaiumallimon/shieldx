@@ -1,7 +1,5 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:ionicons/ionicons.dart';
 
 class FloatingBottomNav extends StatefulWidget {
   final int selectedIndex;
@@ -26,23 +24,28 @@ class _FloatingBottomNavState extends State<FloatingBottomNav> {
 
 final List<NavItem> _navItems = [
   NavItem(
-    icon: LucideIcons.home, // Perfect for "Zero-Knowledge" storage
+    icon: Ionicons.home_outline,
+    selectedIcon: Ionicons.home,
     label: 'Vault',
   ),
   NavItem(
-    icon: LucideIcons.database, // More modern than 'apps' or 'accessibility'
+    icon: Ionicons.folder_open_outline,
+    selectedIcon: Ionicons.folder_open,
     label: 'Manage',
   ),
   NavItem(
-    icon: LucideIcons.dices, // Creative & modern for a generator (or 'refreshCcw')
+    icon: Ionicons.key_outline,
+    selectedIcon: Ionicons.key,
     label: 'Generate',
   ),
   NavItem(
-    icon: LucideIcons.shieldCheck, // High trust icon for security audits
+    icon: Ionicons.shield_outline,
+    selectedIcon: Ionicons.shield,
     label: 'Security',
   ),
   NavItem(
-    icon: LucideIcons.layoutGrid, // Standard, but fits the stroke-weight of others
+    icon: Ionicons.extension_puzzle_outline,
+    selectedIcon: Ionicons.extension_puzzle,
     label: 'Tools',
   ),
 ];
@@ -78,163 +81,117 @@ final List<NavItem> _navItems = [
     final theme = Theme.of(context);
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     final navHeight = 72.0;
+    final totalHeight = navHeight + bottomPadding + 8;
+    final fadeHeight = 60.0;
 
     return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
-      child: Stack(
-        children: [
-          // Gradient background fade (like ScrollableAppBar)
-          if (widget.showGradientOnScroll)
-            AnimatedOpacity(
-              opacity: _showGradient ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 200),
+      child: SizedBox(
+        height: totalHeight + fadeHeight,
+        child: Stack(
+          children: [
+            // Permanent gradient background fade
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
               child: IgnorePointer(
-                child: Container(
-                  height: navHeight + bottomPadding + 100,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        theme.colorScheme.surface,
-                        theme.colorScheme.surface,
-                        theme.colorScheme.surface.withAlpha(250),
-                        theme.colorScheme.surface.withAlpha(230),
-                        theme.colorScheme.surface.withAlpha(200),
-                        theme.colorScheme.surface.withAlpha(160),
-                        theme.colorScheme.surface.withAlpha(110),
-                        theme.colorScheme.surface.withAlpha(60),
-                        theme.colorScheme.surface.withAlpha(20),
-                        theme.colorScheme.surface.withAlpha(0),
-                      ],
-                      stops: const [
-                        0.0,
-                        0.35,
-                        0.5,
-                        0.6,
-                        0.68,
-                        0.75,
-                        0.82,
-                        0.9,
-                        0.96,
-                        1.0,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          // Permanent fade below navbar
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: IgnorePointer(
-              child: Container(
-                height: navHeight + bottomPadding + 60,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      theme.colorScheme.surface.withAlpha(0),
-                      theme.colorScheme.surface.withAlpha(10),
-                      theme.colorScheme.surface.withAlpha(30),
-                      theme.colorScheme.surface.withAlpha(60),
-                      theme.colorScheme.surface.withAlpha(100),
-                      theme.colorScheme.surface.withAlpha(150),
-                      theme.colorScheme.surface.withAlpha(200),
-                      theme.colorScheme.surface.withAlpha(240),
-                      theme.colorScheme.surface,
-                      theme.colorScheme.surface,
-                    ],
-                    stops: const [
-                      0.0,
-                      0.1,
-                      0.2,
-                      0.3,
-                      0.4,
-                      0.5,
-                      0.6,
-                      0.75,
-                      0.85,
-                      1.0,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Floating bottom navigation bar with blur
-          Positioned(
-            bottom: bottomPadding + 8,
-            left: 16,
-            right: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(100),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.onSurface.withAlpha(20),
-                    offset: const Offset(0, 8),
-                    blurRadius: 24,
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(100),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 13.0, sigmaY: 13.0),
+                ignoring: true,
+                child: ClipRect(
                   child: Container(
+                    height: totalHeight + fadeHeight,
                     decoration: BoxDecoration(
-                      color: theme.scaffoldBackgroundColor.withAlpha(100),
-                      borderRadius: BorderRadius.circular(100),
-                      border: Border.all(
-                        color: theme.colorScheme.onSurface.withAlpha(20),
-                        width: 1.0,
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          theme.colorScheme.surface,
+                          theme.colorScheme.surface,
+                          theme.colorScheme.surface.withAlpha(250),
+                          theme.colorScheme.surface.withAlpha(230),
+                          theme.colorScheme.surface.withAlpha(200),
+                          theme.colorScheme.surface.withAlpha(160),
+                          theme.colorScheme.surface.withAlpha(110),
+                          theme.colorScheme.surface.withAlpha(60),
+                          theme.colorScheme.surface.withAlpha(20),
+                          theme.colorScheme.surface.withAlpha(0),
+                        ],
+                        stops: const [
+                          0.0,
+                          0.35,
+                          0.5,
+                          0.6,
+                          0.68,
+                          0.75,
+                          0.82,
+                          0.9,
+                          0.96,
+                          1.0,
+                        ],
                       ),
                     ),
-                    padding: const EdgeInsets.all(8),
-                    child: Stack(
-                      children: [
-                        // Sliding pill background
-                        AnimatedPositioned(
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeInOutCubicEmphasized,
-                          left: (MediaQuery.of(context).size.width - 32 - 16) /
-                                _navItems.length * widget.selectedIndex,
-                          child: Container(
-                            width: (MediaQuery.of(context).size.width - 32 - 16) /
-                                   _navItems.length,
-                            height: 64,
-                            padding: const EdgeInsets.all(4),
+                  ),
+                ),
+              ),
+            ),
+            // Regular bottom navigation bar
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: AbsorbPointer(
+                absorbing: false,
+                child: Container(
+                  color: Colors.transparent,
+                  padding: EdgeInsets.only(
+                    bottom: bottomPadding,
+                    top: 8,
+                  ),
+                  child: SizedBox(
+                    height: navHeight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Stack(
+                        children: [
+                          // Sliding pill background
+                          AnimatedPositioned(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOutCubicEmphasized,
+                            left: (MediaQuery.of(context).size.width - 32) /
+                                  _navItems.length * widget.selectedIndex,
                             child: Container(
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withAlpha(50),
-                                borderRadius: BorderRadius.circular(92),
+                              width: (MediaQuery.of(context).size.width - 32) /
+                                     _navItems.length,
+                              height: navHeight,
+                              padding: const EdgeInsets.all(8),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary.withAlpha(50),
+                                  // borderRadius: BorderRadius.circular(16),
+                                  shape: BoxShape.circle
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        // Nav items
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: List.generate(
-                            _navItems.length,
-                            (index) => _buildNavItem(index, theme),
+                          // Nav items
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: List.generate(
+                              _navItems.length,
+                              (index) => _buildNavItem(index, theme),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -247,7 +204,7 @@ final List<NavItem> _navItems = [
       child: GestureDetector(
         onTap: () => widget.onItemTapped(index),
         child: Container(
-          height: 64,
+          height: 72,
           color: Colors.transparent,
           child: Center(
             child: TweenAnimationBuilder<double>(
@@ -261,8 +218,8 @@ final List<NavItem> _navItems = [
                 return Transform.scale(
                   scale: scale,
                   child: Icon(
-                    navItem.icon,
-                    size: 26,
+                    isSelected ? navItem.selectedIcon : navItem.icon,
+                    size: 22,
                     color: isSelected
                         ? theme.colorScheme.primary
                         : theme.colorScheme.onSurface.withAlpha(128),
@@ -279,10 +236,12 @@ final List<NavItem> _navItems = [
 
 class NavItem {
   final IconData icon;
+  final IconData  selectedIcon;
   final String label;
 
   NavItem({
     required this.icon,
+    required this.selectedIcon,
     required this.label,
   });
 }
