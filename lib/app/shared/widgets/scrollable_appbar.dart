@@ -108,14 +108,13 @@ class _ScrollableAppBarState extends State<ScrollableAppBar> {
           ),
         // Fixed AppBar (transparent) - in front with pointer events enabled
         Positioned(
-          top: MediaQuery.of(context).padding.top,
+          top: MediaQuery.of(context).padding.top + 8,
           left: 0,
           right: 0,
           child: AbsorbPointer(
             absorbing: false,
             child: SizedBox(
               height: appBarHeight,
-              // padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Row(
                 mainAxisAlignment: widget.title == null
                     ? MainAxisAlignment.spaceBetween

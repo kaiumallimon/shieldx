@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
@@ -19,6 +20,15 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     _navigateAfterDelay();
+
+        SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.white,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
   }
 
   /// Check auth status and navigate accordingly after 2 seconds

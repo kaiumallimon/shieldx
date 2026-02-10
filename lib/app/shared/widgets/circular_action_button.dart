@@ -77,7 +77,6 @@ class _CircularActionButtonState extends State<CircularActionButton> {
         onPressed: widget.onTap,
         style: ElevatedButton.styleFrom(
           shape: const CircleBorder(),
-          padding: widget.padding ?? const EdgeInsets.all(12),
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
           elevation: 0,
