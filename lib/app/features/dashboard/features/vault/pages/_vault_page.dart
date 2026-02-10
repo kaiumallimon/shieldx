@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shieldx/app/data/models/vault_item_model.dart';
 import 'package:shieldx/app/data/services/_auth_storage_service.dart';
 import 'package:shieldx/app/data/services/supabase_vault_service.dart';
@@ -36,17 +37,46 @@ class _VaultPageState extends State<VaultPage> {
   List<VaultItem> _vaultItems = [];
   bool _isLoading = true;
 
+  // Realtime subscription
+  RealtimeChannel? _realtimeSubscription;
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
     _loadVaultItems();
+    _setupRealtimeSubscription();
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _realtimeSubscription?.unsubscribe();
     super.dispose();
+  }
+
+  /// Set up realtime subscription for vault items
+  void _setupRealtimeSubscription() {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    _realtimeSubscription = Supabase.instance.client
+        .channel('vault_items')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'vault_items',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
+          callback: (payload) {
+            // Reload vault items when any change occurs
+            _loadVaultItems();
+          },
+        )
+        .subscribe();
   }
 
   /// Fetches user session data from storage and updates the UI

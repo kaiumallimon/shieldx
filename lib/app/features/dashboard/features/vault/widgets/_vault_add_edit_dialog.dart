@@ -60,10 +60,26 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
       text: widget.existingItem?.notesPreview,
     );
 
-    // TODO: Decrypt existing payload if editing
-    _usernameController = TextEditingController();
-    _emailController = TextEditingController();
-    _passwordController = TextEditingController();
+    // Decrypt existing payload if editing
+    if (widget.existingItem != null && widget.existingItem!.encryptedPayload.isNotEmpty) {
+      try {
+        final decryptedJson = utf8.decode(base64Decode(widget.existingItem!.encryptedPayload));
+        final payload = VaultItemPayload.fromJson(jsonDecode(decryptedJson));
+
+        _usernameController = TextEditingController(text: payload.username ?? '');
+        _emailController = TextEditingController(text: payload.email ?? '');
+        _passwordController = TextEditingController(text: payload.password ?? '');
+      } catch (e) {
+        // If decryption fails, initialize with empty controllers
+        _usernameController = TextEditingController();
+        _emailController = TextEditingController();
+        _passwordController = TextEditingController();
+      }
+    } else {
+      _usernameController = TextEditingController();
+      _emailController = TextEditingController();
+      _passwordController = TextEditingController();
+    }
   }
 
   @override
