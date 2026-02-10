@@ -410,10 +410,10 @@ class _VaultPageState extends State<VaultPage> {
               height: 56,
               child: Container(
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: theme.colorScheme.secondary.withAlpha(50),
-                    width: 2,
-                  ),
+                  // border: Border.all(
+                  //   color: theme.colorScheme.secondary.withAlpha(50),
+                  //   width: 2,
+                  // ),
                   color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
