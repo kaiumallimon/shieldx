@@ -60,7 +60,7 @@ class _SecurityPageState extends State<SecurityPage> {
                     // Top spacing for appbar
                     SliverToBoxAdapter(
                       child: SizedBox(
-                        height: appBarHeight + MediaQuery.of(context).padding.top,
+                        height: appBarHeight + MediaQuery.of(context).padding.top + 10,
                       ),
                     ),
                     // Content
