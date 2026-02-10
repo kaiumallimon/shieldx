@@ -260,7 +260,7 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
                 icon: const Icon(CupertinoIcons.xmark_circle_fill),
                 onPressed: () => Navigator.of(context).pop(),
                 iconSize: 28,
-                color: theme.colorScheme.onSurface.withAlpha(100),
+                color: theme.colorScheme.onSurface.withAlpha(50),
               ),
             ],
           ),
@@ -291,7 +291,7 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
                           .withAlpha(120),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: theme.colorScheme.outline.withAlpha(100),
+                        color: theme.colorScheme.outline.withAlpha(50),
                         width: 2,
                       ),
                     ),
@@ -427,7 +427,7 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
                               filled: false,
                               hintStyle: TextStyle(
                                 color: theme.colorScheme.onSurface.withAlpha(
-                                  100,
+                                  50,
                                 ),
                               ),
                               prefixIcon: Icon(
@@ -454,7 +454,7 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
                                 borderRadius: BorderRadius.circular(16),
                                 borderSide: BorderSide(
                                   color: theme.colorScheme.onSurface.withAlpha(
-                                    100,
+                                    50,
                                   ),
                                   width: 2,
                                 ),
@@ -514,7 +514,7 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
                           .withAlpha(120),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: theme.colorScheme.outline.withAlpha(100),
+                        color: theme.colorScheme.outline.withAlpha(50),
                         width: 1.5,
                       ),
                     ),
@@ -681,7 +681,7 @@ class _VaultAddEditDialogState extends State<VaultAddEditDialog> {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide(
-                  color: theme.colorScheme.onSurface.withAlpha(100),
+                  color: theme.colorScheme.onSurface.withAlpha(50),
                   width: 2,
                 ),
               ),
